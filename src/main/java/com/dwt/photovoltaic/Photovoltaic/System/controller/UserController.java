@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -44,5 +45,12 @@ public class UserController {
     @CrossOrigin
     public boolean authenticateUser(@RequestParam String username, @RequestParam String password){
         return userService.authenticate(username, password);
+    }
+
+    @GetMapping(value= "/user")
+    @CrossOrigin
+    public User getUserDetails(Principal principal){
+        User userDetails = userRepository.findByUsername(principal.getName());
+        return userDetails;
     }
 }
