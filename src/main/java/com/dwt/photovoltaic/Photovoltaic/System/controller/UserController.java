@@ -4,6 +4,7 @@ import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +36,7 @@ public class UserController {
     @PostMapping(value="/registerUser")
     @CrossOrigin
     public User registerUser(@RequestBody User user){
+        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         return userRepository.save(user);
     }
 
