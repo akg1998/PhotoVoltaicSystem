@@ -34,19 +34,6 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    @PostMapping(value="/registerUser")
-    @CrossOrigin
-    public User registerUser(@RequestBody User user){
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-
-    @PostMapping(value="/loginUser")
-    @CrossOrigin
-    public boolean authenticateUser(@RequestParam String username, @RequestParam String password){
-        return userService.authenticate(username, password);
-    }
-
     @GetMapping(value= "/user")
     @CrossOrigin
     public User getUserDetails(Principal principal){
