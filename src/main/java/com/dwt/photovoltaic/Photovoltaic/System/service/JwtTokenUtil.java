@@ -2,6 +2,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 
 import java.util.Date;
 
+import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ public class JwtTokenUtil {
      
     @Value("${app.jwt.secret}")
     private String SECRET_KEY;
-     
+
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .setSubject(String.format("%s,%s", user.getUsername(), user.getPassword()))
@@ -25,6 +26,16 @@ public class JwtTokenUtil {
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
                  
+    }
+    public String generateAccessTokenForCompany(Company company) {
+        return Jwts.builder()
+                .setSubject(String.format("%s,%s", company.getUsername(), company.getPassword()))
+                .setIssuer("DWT")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .compact();
+
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenUtil.class);

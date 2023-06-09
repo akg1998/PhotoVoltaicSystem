@@ -4,7 +4,10 @@ import com.dwt.photovoltaic.Photovoltaic.System.controller.UserController;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -15,11 +18,7 @@ public class UserService {
         if (username != null && password != null) {
             User user = userRepository.findByUsername(username);
             if (user != null) {
-                if (username.equals(user.getUsername()) && password.equals(user.getPassword())) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return username.equals(user.getUsername()) && password.equals(user.getPassword());
             } else {
                 return false;
             }
@@ -27,5 +26,16 @@ public class UserService {
         else {
             return false;
         }
+    }
+
+    public User registerUser(User user){
+        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        User userObj = userRepository.save(user);
+        return userObj;
+    }
+
+
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
     }
 }

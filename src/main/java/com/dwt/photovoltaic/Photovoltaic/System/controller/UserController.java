@@ -1,7 +1,9 @@
 package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
+import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
+import com.dwt.photovoltaic.Photovoltaic.System.service.CompanyService;
 import com.dwt.photovoltaic.Photovoltaic.System.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +23,9 @@ public class UserController {
 
     @Autowired
     UserService userService;
+    @Autowired
+    CompanyService companyService;
+
 
     @RequestMapping(value="/")
     @CrossOrigin
@@ -31,7 +36,8 @@ public class UserController {
     @GetMapping(value="/users")
     @CrossOrigin
     public List<User> getUsers(){
-        return userRepository.findAll();
+        List<User> listOfUsers = userService.findAllUsers();
+        return listOfUsers;
     }
 
     @GetMapping(value= "/user")
@@ -39,5 +45,12 @@ public class UserController {
     public User getUserDetails(Principal principal){
         User userDetails = userRepository.findByUsername(principal.getName());
         return userDetails;
+    }
+
+    @GetMapping(value="/companies")
+    @CrossOrigin
+    public List<Company> getCompanies(){
+        List<Company> listOfCompanies = companyService.findAllCompanies();
+        return listOfCompanies;
     }
 }

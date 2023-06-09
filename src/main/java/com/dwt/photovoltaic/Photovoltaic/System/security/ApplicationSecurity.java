@@ -52,7 +52,7 @@ public class ApplicationSecurity {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
          
         http.authorizeRequests()
-                .antMatchers("/auth/login","/auth/registerUser", "/user")
+                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany", "/")
                 .permitAll()
                 .anyRequest().authenticated();
 
