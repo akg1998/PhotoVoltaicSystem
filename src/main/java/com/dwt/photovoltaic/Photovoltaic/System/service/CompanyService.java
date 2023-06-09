@@ -1,9 +1,7 @@
 package com.dwt.photovoltaic.Photovoltaic.System.service;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
-import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
-import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +22,11 @@ public class CompanyService {
 
     public List<Company> findAllCompanies() {
         return companyRepository.findAll();
+    }
+
+    public Company getCompanyDetails(String username){
+        Company company = companyRepository.findByUsername(username);
+        return company;
     }
 }
 

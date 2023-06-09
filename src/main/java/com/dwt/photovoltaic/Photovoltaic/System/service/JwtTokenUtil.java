@@ -1,7 +1,5 @@
 package com.dwt.photovoltaic.Photovoltaic.System.service;
 
-import java.util.Date;
-
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import io.jsonwebtoken.*;
@@ -10,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 @Component
 public class JwtTokenUtil {
     private static final long EXPIRE_DURATION = 24 * 60 * 60 * 1000; // 24 hour
@@ -17,7 +17,7 @@ public class JwtTokenUtil {
     @Value("${app.jwt.secret}")
     private String SECRET_KEY;
 
-    public String generateAccessToken(User user) {
+    public String generateAccessTokenForUser(User user) {
         return Jwts.builder()
                 .setSubject(String.format("%s,%s", user.getUsername(), user.getPassword()))
                 .setIssuer("DWT")
