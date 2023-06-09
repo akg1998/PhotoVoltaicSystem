@@ -1,26 +1,35 @@
 package com.dwt.photovoltaic.Photovoltaic.System.security;
 
-import javax.servlet.http.HttpServletResponse;
-
+import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
+import com.dwt.photovoltaic.Photovoltaic.System.model.User;
+import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.service.JwtTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 public class ApplicationSecurity {
      
     @Autowired 
     private UserRepository userRepo;
+
+    @Autowired
+    private CompanyRepository companyRepo;
     @Autowired 
     private JwtTokenFilter jwtTokenFilter;
      
@@ -30,11 +39,28 @@ public class ApplicationSecurity {
 
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return userRepo.findByUsername(username);
+                User user = userRepo.findByUsername(username);
+                if(user!=null){
+                    return user;
+                }
+                else{
+                    Company company = companyRepo.findByUsername(username);
+                    return company;
+                }
             }
         };
     }
-     
+
+//    @Bean
+//    public UserDetailsService companyDeatilsService() {
+//        return new UserDetailsService() {
+//            @Override
+//            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//                return companyRepo.findByUsername(username);
+//            }
+//        };
+//    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -52,7 +78,7 @@ public class ApplicationSecurity {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
          
         http.authorizeRequests()
-                .antMatchers("/auth/login","/auth/registerUser", "/user")
+                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users")
                 .permitAll()
                 .anyRequest().authenticated();
 

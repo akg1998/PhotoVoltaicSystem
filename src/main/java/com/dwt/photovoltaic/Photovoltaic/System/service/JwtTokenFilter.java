@@ -1,12 +1,5 @@
 package com.dwt.photovoltaic.Photovoltaic.System.service;
 
-import java.io.IOException;
- 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +9,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
  
 
 @Component
@@ -46,11 +45,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
  
     private boolean hasAuthorizationBearer(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        if (ObjectUtils.isEmpty(header) || !header.startsWith("Bearer")) {
-            return false;
-        }
- 
-        return true;
+        return !ObjectUtils.isEmpty(header) && header.startsWith("Bearer");
     }
  
     private String getAccessToken(HttpServletRequest request) {

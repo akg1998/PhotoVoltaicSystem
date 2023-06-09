@@ -11,20 +11,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
-@Document("User")
+@Document("company")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements UserDetails {
+public class Company implements UserDetails {
 
     @Id
     private ObjectId id;
-    private String fullName;
-    private String emailId;
+    private String companyName;
+    private String companyEmailId;
     private String username;
     private String password;
     private String contactNo;
-    private String userType;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -55,6 +54,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 
 }
