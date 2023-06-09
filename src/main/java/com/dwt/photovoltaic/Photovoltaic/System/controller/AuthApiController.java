@@ -33,8 +33,16 @@ public class AuthApiController {
     @PostMapping(value="/checkUniqueUsername")
     @CrossOrigin
     public boolean isUsernameAvailable(@RequestBody String username){
-        boolean isAvailable = userService.checkAvailability(username);
-        return isAvailable;
+       try{
+           boolean isAvailable = userService.checkAvailability(username);
+           return isAvailable;
+       }
+       catch(Exception e){
+           ErrorResponse errorResponse = new ErrorResponse();
+           errorResponse.setMessage("Username not available, please try another!");
+           return false;
+       }
+
     }
     @PostMapping(value="/registerUser")
     @CrossOrigin

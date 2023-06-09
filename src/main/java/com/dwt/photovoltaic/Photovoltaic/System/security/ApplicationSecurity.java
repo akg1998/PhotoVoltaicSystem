@@ -51,16 +51,6 @@ public class ApplicationSecurity {
         };
     }
 
-//    @Bean
-//    public UserDetailsService companyDeatilsService() {
-//        return new UserDetailsService() {
-//            @Override
-//            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//                return companyRepo.findByUsername(username);
-//            }
-//        };
-//    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
