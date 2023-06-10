@@ -2,16 +2,14 @@ package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
 import com.dwt.photovoltaic.Photovoltaic.System.model.ErrorResponse;
+import com.dwt.photovoltaic.Photovoltaic.System.model.Project;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import com.dwt.photovoltaic.Photovoltaic.System.service.CompanyService;
 import com.dwt.photovoltaic.Photovoltaic.System.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -20,7 +18,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-public class UserController {
+public class ProfileController {
 
     @Autowired
     UserService userService;
@@ -61,6 +59,26 @@ public class UserController {
         try {
             Company company = companyService.getCompanyDetails(principal.getName());
             return new ResponseEntity<>(company, HttpStatus.OK);
+        }
+        catch(Exception e){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
+
+//    @GetMapping(value="/getCompanyProject")
+//    @CrossOrigin
+//    public ResponseEntity<?> getProjectForCompany(Principal principal){
+//        return new ResponseEntity<>();
+//    }
+
+    @PostMapping(value="/saveCompanyProject")
+    @CrossOrigin
+    public ResponseEntity<?> saveProjectForCompany(@RequestBody Project projectDetails, Principal principal){
+        try {
+            ResponseEntity<?> message = companyService.saveProjectDetails(principal.getName(), projectDetails);
+            return new ResponseEntity<>(message, HttpStatus.OK);
         }
         catch(Exception e){
             ErrorResponse errorResponse = new ErrorResponse();
