@@ -39,7 +39,7 @@ public class AuthApiController {
        }
        catch(Exception e){
            ErrorResponse errorResponse = new ErrorResponse();
-           errorResponse.setMessage("Username not available, please try another!");
+           errorResponse.setMessage("Multiple username present with same name, please try another!");
            return false;
        }
 
@@ -51,14 +51,17 @@ public class AuthApiController {
             if (isUsernameAvailable(user.getUsername())) {
                 User userObj = userService.registerUser(user);
                 return new ResponseEntity<>(userObj, HttpStatus.OK);
+            }else{
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setMessage("Username not available, please try another!");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
         }
         catch(Exception e){
             ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Username not available, please try another!");
+            errorResponse.setMessage("Multiple username present with same name, please try another!");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        return null;
     }
 
     @PostMapping(value="/registerCompany")
@@ -69,13 +72,17 @@ public class AuthApiController {
                 Company companyObj = companyService.registerCompany(company);
                 return new ResponseEntity<>(companyObj, HttpStatus.OK);
             }
-        }
-        catch(Exception e){
+            else{
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.setMessage("Username not available, please try another!");
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
-        return null;
+        }
+        catch(Exception e){
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setMessage("Multiple username present with same name, please try another!");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
     }
     @PostMapping(value = "/userLogin")
     @CrossOrigin
