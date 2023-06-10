@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 @Document("User")
 @Data
@@ -25,6 +26,7 @@ public class User implements UserDetails {
     private String password;
     private String contactNo;
     private String userType;
+    private List<Project> projects;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

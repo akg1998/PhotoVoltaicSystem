@@ -86,4 +86,18 @@ public class ProfileController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping(value="/saveUserProject")
+    @CrossOrigin
+    public ResponseEntity<?> saveProjectForUser(@RequestBody Project projectDetails, Principal principal){
+        try {
+            ResponseEntity<?> message = userService.saveProjectDetails(principal.getName(), projectDetails);
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        }
+        catch(Exception e){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
 }

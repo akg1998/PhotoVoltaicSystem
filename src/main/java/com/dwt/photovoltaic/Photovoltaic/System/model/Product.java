@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
+import java.math.BigDecimal;
+
 
 @Data
 @AllArgsConstructor
@@ -15,15 +17,40 @@ public class Product {
     @Id
     private ObjectId id;
     private String productName;
-    private Float powerPeak;
     private String orientation;
-    private Float inclination;
-    private Float area;
-    private Float longitude;
-    private Float latitude;
-    private Float cloudCover;
+    private BigDecimal powerPeak;
+    private BigDecimal inclination;
+    private BigDecimal area;
+    private BigDecimal longitude;
+    private BigDecimal latitude;
+    private BigDecimal cloudCover;
     private Integer systemLoss;
 
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude.setScale(2, BigDecimal.ROUND_HALF_UP);;
+    }
+
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude.setScale(2, BigDecimal.ROUND_HALF_UP);;
+    }
+
+    public void setCloudCover(BigDecimal cloudCover) {
+        this.cloudCover = cloudCover.setScale(2, BigDecimal.ROUND_HALF_UP);;
+    }
+
+    public void setPowerPeak(BigDecimal powerPeak) {
+        this.powerPeak = powerPeak.setScale(2, BigDecimal.ROUND_HALF_UP);
+    }
+
+    // Setter method for inclination with two decimal places
+    public void setInclination(BigDecimal inclination) {
+        this.inclination = inclination.setScale(2, BigDecimal.ROUND_HALF_UP);
+    }
+
+    // Setter method for area with two decimal places
+    public void setArea(BigDecimal area) {
+        this.area = area.setScale(2, BigDecimal.ROUND_HALF_UP);
+    }
 }
 
 
