@@ -66,10 +66,9 @@ public class ApplicationSecurity {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.cors();
+         
         http.authorizeRequests()
-                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users","/swagger-ui.html",
-                "/swagger-ui/***", "/", "/v3/api-docs/**")
+                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users")
                 .permitAll()
                 .anyRequest().authenticated();
 
