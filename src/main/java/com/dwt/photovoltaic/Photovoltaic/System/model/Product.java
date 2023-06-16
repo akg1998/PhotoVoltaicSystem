@@ -3,7 +3,6 @@ package com.dwt.photovoltaic.Photovoltaic.System.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
@@ -15,7 +14,7 @@ import java.math.BigDecimal;
 public class Product {
 
     @Id
-    private ObjectId id;
+    private String id;
     private String productName;
     private String orientation;
     private BigDecimal powerPeak;

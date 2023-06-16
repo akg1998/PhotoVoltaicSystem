@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CompanyService {
@@ -37,11 +38,12 @@ public class CompanyService {
         if (username != null) {
             Company companyObj = companyRepo.findByUsername(username);
             List<Project> project = companyObj.getProjects();
+            projectDetails.setId(UUID.randomUUID().toString());
             if (companyObj != null) {
                 project.add(projectDetails);
                 companyObj.setProjects(project);
                 companyRepo.save(companyObj);
-                return new ResponseEntity<>(projectDetails, HttpStatus.OK);
+                return new ResponseEntity<>(projectDetails.getId(), HttpStatus.OK);
             } else {
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.setMessage("Invalid Data! Contact administrator");

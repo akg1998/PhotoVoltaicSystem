@@ -67,12 +67,7 @@ public class ProfileController {
         }
     }
 
-//    @GetMapping(value="/getCompanyProject")
-//    @CrossOrigin
-//    public ResponseEntity<?> getProjectForCompany(Principal principal){
-//        return new ResponseEntity<>();
-//    }
-
+    // Save project and product in single json
     @PostMapping(value="/saveCompanyProject")
     @CrossOrigin
     public ResponseEntity<?> saveProjectForCompany(@RequestBody Project projectDetails, Principal principal){
@@ -87,16 +82,31 @@ public class ProfileController {
         }
     }
 
+    // Save project and product in single json
     @PostMapping(value="/saveUserProject")
     @CrossOrigin
     public ResponseEntity<?> saveProjectForUser(@RequestBody Project projectDetails, Principal principal){
         try {
-            ResponseEntity<?> message = userService.saveProjectDetails(principal.getName(), projectDetails);
-            return new ResponseEntity<>(message, HttpStatus.OK);
+            ResponseEntity<?> project = userService.saveProjectDetails(principal.getName(), projectDetails);
+            return ResponseEntity.ok(project.getBody());
         }
         catch(Exception e){
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(value="/saveProduct")
+    @CrossOrigin
+    public ResponseEntity<?> saveProduct(@RequestBody Project project,  Principal principal){
+        try {
+            ResponseEntity<?> value =  userService.saveProductDetails(project, principal.getName());
+            return new ResponseEntity<>(value.getBody(), HttpStatus.NOT_FOUND);
+        }
+        catch(Exception e){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage(String.valueOf(e));
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
