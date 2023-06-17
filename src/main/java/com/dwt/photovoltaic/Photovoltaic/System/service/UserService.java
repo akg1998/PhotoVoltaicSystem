@@ -142,4 +142,22 @@ public class UserService {
         errorResponse.setMessage("You are not valid user to perform this action!");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    public ResponseEntity<?> updateAccountForUser(User user, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if(userObj!=null && userObj.getUsername().equals(user.getUsername())){
+            userObj.setUserType(user.getUserType());
+            userObj.setFullName(user.getFullName());
+            userObj.setEmailId(user.getEmailId());
+            userObj.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+            userObj.setContactNo(user.getContactNo());
+            userObj = userRepo.save(userObj);
+            return new ResponseEntity<>(userObj, HttpStatus.OK);
+        }
+        else{
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
 }

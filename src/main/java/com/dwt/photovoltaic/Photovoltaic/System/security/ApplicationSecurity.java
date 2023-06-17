@@ -68,7 +68,8 @@ public class ApplicationSecurity {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.cors();
         http.authorizeRequests()
-                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users")
+                .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users",
+                        "/swagger-ui.html","/swagger-ui/***", "/", "/v3/api-docs/**")
                 .permitAll()
                 .anyRequest().authenticated();
 

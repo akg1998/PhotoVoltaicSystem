@@ -53,6 +53,13 @@ public class ProfileController {
         }
     }
 
+    @PatchMapping(value="/updateUser")
+    @CrossOrigin
+    public ResponseEntity<?> updateUserAccount(@RequestBody User user, Principal principal){
+        ResponseEntity<?> userObj = userService.updateAccountForUser(user, principal.getName());
+        return new ResponseEntity<>(userObj, userObj.getStatusCode());
+    }
+
     @GetMapping(value="/company")
     @CrossOrigin
     public ResponseEntity<?> getCompanyDetails(Principal principal){
