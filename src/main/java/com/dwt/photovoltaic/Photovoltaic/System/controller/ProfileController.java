@@ -60,6 +60,13 @@ public class ProfileController {
         return new ResponseEntity<>(userObj, userObj.getStatusCode());
     }
 
+    @DeleteMapping(value="/deleteUser")
+    @CrossOrigin
+    public ResponseEntity<?> deleteUserAccount(Principal principal){
+        ResponseEntity<?> status = userService.deleteAccountUser(principal.getName());
+        return new ResponseEntity<>(status, status.getStatusCode());
+    }
+
     @GetMapping(value="/company")
     @CrossOrigin
     public ResponseEntity<?> getCompanyDetails(Principal principal){
@@ -102,6 +109,13 @@ public class ProfileController {
             errorResponse.setMessage("Invalid Data! Contact administrator");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping(value = "/showProjects")
+    @CrossOrigin
+    public ResponseEntity<?> getProjects(Principal principal){
+        ResponseEntity<?> projects = userService.fetchAllProjects(principal.getName());
+        return new ResponseEntity<>(projects, projects.getStatusCode());
     }
 
     @PostMapping(value="/saveProduct")

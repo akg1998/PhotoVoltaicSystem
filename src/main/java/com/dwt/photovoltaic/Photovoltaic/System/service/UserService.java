@@ -3,7 +3,6 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -157,6 +155,53 @@ public class UserService {
         else{
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> deleteAccountUser(String username) {
+        if(username!=null){
+            User userObj = userRepo.findByUsername(username);
+            if(userObj!=null) {
+                userRepo.delete(userObj);
+                return new ResponseEntity<>(true,HttpStatus.OK);
+            }
+            else{
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setMessage("User not present!");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Invalid action against User, Contact Administrator!");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> fetchAllProjects(String username) {
+        if(username!=null){
+            User userObj = userRepo.findByUsername(username);
+            if(userObj!=null){
+                List<Project> projects = userObj.getProjects();
+                if(projects!=null){
+                    return new ResponseEntity<>(projects, HttpStatus.OK);
+                }
+                else{
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.setMessage("No Projects are created yet!");
+                    return new ResponseEntity<>(errorResponse, HttpStatus.OK);
+                }
+            }
+            else{
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setMessage("User not present!");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Not valid User!");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
