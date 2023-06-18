@@ -69,7 +69,7 @@ public class ApplicationSecurity {
         http.cors();
         http.authorizeRequests()
                 .antMatchers("/auth/userLogin","/auth/registerUser", "/auth/companyLogin", "/auth/registerCompany","/auth/checkUniqueUsername","/users",
-                        "/swagger-ui.html","/swagger-ui/***", "/", "/v3/api-docs/**")
+                        "/swagger-ui.html","/swagger-ui/***", "/", "/v3/api-docs/**","/getDeletedAccounts")
                 .permitAll()
                 .anyRequest().authenticated();
 

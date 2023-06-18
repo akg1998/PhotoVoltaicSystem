@@ -26,6 +26,7 @@ public class User implements UserDetails {
     private String contactNo;
     private String userType;
     private List<Project> projects;
+    private String status; // status is used in soft deletion process, active means not deleted user, deleted means user is deleted
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

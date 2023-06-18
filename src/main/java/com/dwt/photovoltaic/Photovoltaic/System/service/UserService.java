@@ -57,6 +57,7 @@ public class UserService {
 
     public User registerUser(User user){
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setStatus("ACTIVE");
         User userObj = userRepo.save(user);
         return userObj;
     }
@@ -76,7 +77,7 @@ public class UserService {
             User userObj = userRepo.findByUsername(username);
             List<Project> project = userObj.getProjects();
             projectDetails.setId(UUID.randomUUID().toString());
-            if (userObj != null) {
+            if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
                 if (project == null || project.isEmpty()) {
                     // No existing data, create a new list and add the new object
                     List<Project> newProjectList = new ArrayList<>();
@@ -105,7 +106,7 @@ public class UserService {
     // Two ways -  first scan whole project using projectId or second one is scan by userId and then ProjectId
     public ResponseEntity<?> saveProductDetails(Project projectObj, String username) {
         User user = userRepo.findByUsername(username);
-        if (user != null) {
+        if (user != null && user.getStatus().equals("ACTIVE")) {
             if (projectObj.getId()!=null) {
                 Project project = user.getProjects().stream()
                         .filter(p -> p.getId().equals(projectObj.getId()))
@@ -143,7 +144,7 @@ public class UserService {
 
     public ResponseEntity<?> updateAccountForUser(User user, String username) {
         User userObj = userRepo.findByUsername(username);
-        if(userObj!=null && userObj.getUsername().equals(user.getUsername())){
+        if(userObj!=null && userObj.getUsername().equals(user.getUsername()) && userObj.getStatus().equals("ACTIVE")){
             userObj.setUserType(user.getUserType());
             userObj.setFullName(user.getFullName());
             userObj.setEmailId(user.getEmailId());
@@ -161,9 +162,10 @@ public class UserService {
     public ResponseEntity<?> deleteAccountUser(String username) {
         if(username!=null){
             User userObj = userRepo.findByUsername(username);
-            if(userObj!=null) {
-                userRepo.delete(userObj);
-                return new ResponseEntity<>(true,HttpStatus.OK);
+            if(userObj!=null && userObj.getStatus().equals("ACTIVE")) {
+                userObj.setStatus("DELETED");
+                userObj = userRepo.save(userObj);
+                return new ResponseEntity<>(userObj,HttpStatus.OK);
             }
             else{
                 ErrorResponse errorResponse = new ErrorResponse();
@@ -203,5 +205,10 @@ public class UserService {
             errorResponse.setMessage("Not valid User!");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
+    }
+
+    public List<User> getAllDeletedUsers() {
+        List<User> deletedUsers = userRepo.showUsersbyStatus("DELETED");
+        return deletedUsers;
     }
 }

@@ -18,12 +18,10 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-public class ProfileController {
+public class UserController {
 
     @Autowired
     UserService userService;
-    @Autowired
-    CompanyService companyService;
 
 
     @RequestMapping(value="/")
@@ -63,37 +61,15 @@ public class ProfileController {
     @DeleteMapping(value="/deleteUser")
     @CrossOrigin
     public ResponseEntity<?> deleteUserAccount(Principal principal){
-        ResponseEntity<?> status = userService.deleteAccountUser(principal.getName());
-        return new ResponseEntity<>(status, status.getStatusCode());
+        ResponseEntity<?> userObj = userService.deleteAccountUser(principal.getName());
+        return new ResponseEntity<>(userObj, userObj.getStatusCode());
     }
 
-    @GetMapping(value="/company")
+    @GetMapping(value= "/getDeletedAccounts")
     @CrossOrigin
-    public ResponseEntity<?> getCompanyDetails(Principal principal){
-        try {
-            Company company = companyService.getCompanyDetails(principal.getName());
-            return new ResponseEntity<>(company, HttpStatus.OK);
-        }
-        catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Save project and product in single json
-    @PostMapping(value="/saveCompanyProject")
-    @CrossOrigin
-    public ResponseEntity<?> saveProjectForCompany(@RequestBody Project projectDetails, Principal principal){
-        try {
-            ResponseEntity<?> message = companyService.saveProjectDetails(principal.getName(), projectDetails);
-            return new ResponseEntity<>(message, HttpStatus.OK);
-        }
-        catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<?> fetchDeletedAccounts(){
+        List<User> userObj = userService.getAllDeletedUsers();
+        return ResponseEntity.ok(userObj);
     }
 
     // Save project and product in single json
