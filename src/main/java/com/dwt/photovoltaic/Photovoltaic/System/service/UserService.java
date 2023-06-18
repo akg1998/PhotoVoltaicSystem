@@ -147,7 +147,6 @@ public class UserService {
             userObj.setUserType(user.getUserType());
             userObj.setFullName(user.getFullName());
             userObj.setEmailId(user.getEmailId());
-            userObj.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
             userObj.setContactNo(user.getContactNo());
             userObj = userRepo.save(userObj);
             return new ResponseEntity<>(userObj, HttpStatus.OK);
