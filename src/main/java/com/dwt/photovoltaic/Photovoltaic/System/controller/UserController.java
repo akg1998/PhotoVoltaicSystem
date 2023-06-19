@@ -99,7 +99,7 @@ public class UserController {
     public ResponseEntity<?> saveProduct(@RequestBody Project project,  Principal principal){
         try {
             ResponseEntity<?> value =  userService.saveProductDetails(project, principal.getName());
-            return new ResponseEntity<>(value.getBody(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(value.getBody(), HttpStatus.OK);
         }
         catch(Exception e){
             ErrorResponse errorResponse = new ErrorResponse();
@@ -107,4 +107,5 @@ public class UserController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
+
 }

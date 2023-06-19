@@ -2,6 +2,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
 import com.dwt.photovoltaic.Photovoltaic.System.model.ErrorResponse;
+import com.dwt.photovoltaic.Photovoltaic.System.model.Product;
 import com.dwt.photovoltaic.Photovoltaic.System.model.Project;
 import com.dwt.photovoltaic.Photovoltaic.System.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,11 +33,11 @@ public class CompanyController {
     }
 
     // Save project and product in single json
-    @PostMapping(value="/saveCompanyProject")
+    @PostMapping(value="/saveCompanyProduct")
     @CrossOrigin
-    public ResponseEntity<?> saveProjectForCompany(@RequestBody Project projectDetails, Principal principal){
+    public ResponseEntity<?> saveProductForCompany(@RequestBody Product productDetails, Principal principal){
         try {
-            ResponseEntity<?> message = companyService.saveProjectDetails(principal.getName(), projectDetails);
+            ResponseEntity<?> message = companyService.saveProductDetails(principal.getName(), productDetails);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
         catch(Exception e){
@@ -45,4 +46,5 @@ public class CompanyController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
+
 }

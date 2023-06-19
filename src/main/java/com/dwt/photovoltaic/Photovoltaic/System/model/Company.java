@@ -24,7 +24,7 @@ public class Company implements UserDetails {
     private String username;
     private String password;
     private String contactNo;
-    private List<Project> projects;
+    private List<Product> products;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
