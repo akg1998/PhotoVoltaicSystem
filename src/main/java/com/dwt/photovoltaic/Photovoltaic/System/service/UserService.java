@@ -76,7 +76,7 @@ public class UserService {
         if (username != null) {
             User userObj = userRepo.findByUsername(username);
             List<Project> project = userObj.getProjects();
-            projectDetails.setId(UUID.randomUUID().toString());
+           // projectDetails.setId(UUID.randomUUID().toString());
             if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
                 if (project == null || project.isEmpty()) {
                     // No existing data, create a new list and add the new object
@@ -94,7 +94,7 @@ public class UserService {
             }
             else {
                 ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("Invalid Data! Contact administrator");
+                errorResponse.setMessage("User might be deleted or not valid user to perform this action");
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
         }
@@ -107,9 +107,9 @@ public class UserService {
     public ResponseEntity<?> saveProductDetails(Project projectObj, String username) {
         User user = userRepo.findByUsername(username);
         if (user != null && user.getStatus().equals("ACTIVE")) {
-            if (projectObj.getId()!=null) {
+            if (projectObj.getProjectName()!=null) {
                 Project project = user.getProjects().stream()
-                        .filter(p -> p.getId().equals(projectObj.getId()))
+                        .filter(p -> p.getProjectName().equals(projectObj.getProjectName()))
                         .findFirst()
                         .orElse(null);
                 if (project != null) {
@@ -118,7 +118,7 @@ public class UserService {
                         project.setProducts(new ArrayList<>()); // Initialize the products list
                     }
                         for(Product product : products){
-                            product.setId(UUID.randomUUID().toString());
+                            //product.setId(UUID.randomUUID().toString());
                             project.getProducts().add(product);
                             userRepo.save(user);
                             return new ResponseEntity<>(product, HttpStatus.OK);

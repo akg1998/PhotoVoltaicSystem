@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class Product {
 
-    @Id
-    private String id;
+//    @Id
+//    private String id;
     private String productName;
     private String orientation;
     private BigDecimal powerPeak;

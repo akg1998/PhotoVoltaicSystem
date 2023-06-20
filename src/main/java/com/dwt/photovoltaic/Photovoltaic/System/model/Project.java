@@ -12,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class Project {
 
-    @Id
-    private String id;
+//    @Id
+//    private String id;
     private String projectName;
     private String status;
     private List<Product> products;
