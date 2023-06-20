@@ -1,10 +1,6 @@
 package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
-import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
-import com.dwt.photovoltaic.Photovoltaic.System.model.ErrorResponse;
-import com.dwt.photovoltaic.Photovoltaic.System.model.Project;
-import com.dwt.photovoltaic.Photovoltaic.System.model.User;
-import com.dwt.photovoltaic.Photovoltaic.System.service.CompanyService;
+import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,9 +41,9 @@ public class UserController {
             return new ResponseEntity<>(userDetails, HttpStatus.OK);
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -81,9 +77,9 @@ public class UserController {
             return ResponseEntity.ok(project.getBody());
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -102,10 +98,23 @@ public class UserController {
             return new ResponseEntity<>(value.getBody(), HttpStatus.OK);
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage(String.valueOf(e));
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
+    @PatchMapping(value="/updateProduct")
+    @CrossOrigin
+    public ResponseEntity<?> updateProduct(@RequestBody Project updatedProduct, Principal principal){
+        ResponseEntity<?> project = userService.updateProduct(updatedProduct, principal.getName());
+        return new ResponseEntity<>(project.getBody(), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/deleteProduct")
+    @CrossOrigin
+    public ResponseEntity<?> deleteProduct(@RequestBody Project productDetails, Principal principal){
+        ResponseEntity<?> deletedProduct = userService.deleteProduct(productDetails,principal.getName());
+        return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
+    }
 }

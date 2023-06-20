@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class UserService {
@@ -93,14 +92,14 @@ public class UserService {
                 }
             }
             else {
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("User might be deleted or not valid user to perform this action");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("User might be deleted or not valid user to perform this action");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage("You are not valid user to perform this action!");
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("You are not valid user to perform this action!");
+        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
     }
 
     // Two ways -  first scan whole project using projectId or second one is scan by userId and then ProjectId
@@ -125,21 +124,21 @@ public class UserService {
                         }
                     }
                     else {
-                        ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.setMessage("No products given in request, please add some products!");
-                        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("No products given in request, please add some products!");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                     }
 
                 }
                 else{
-                    ErrorResponse errorResponse = new ErrorResponse();
-                    errorResponse.setMessage("Given project is not present in database, it might be deleted!");
-                    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Given project is not present in database, it might be deleted!");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 }
             }
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage("You are not valid user to perform this action!");
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("You are not valid user to perform this action!");
+        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
     }
 
     public ResponseEntity<?> updateAccountForUser(User user, String username) {
@@ -153,9 +152,9 @@ public class UserService {
             return new ResponseEntity<>(userObj, HttpStatus.OK);
         }
         else{
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("You are not valid user to perform this action!");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -168,15 +167,15 @@ public class UserService {
                 return new ResponseEntity<>(userObj,HttpStatus.OK);
             }
             else{
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("User not present!");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("User not present!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
         else{
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid action against User, Contact Administrator!");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Invalid action against User, Contact Administrator!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -189,26 +188,117 @@ public class UserService {
                     return new ResponseEntity<>(projects, HttpStatus.OK);
                 }
                 else{
-                    ErrorResponse errorResponse = new ErrorResponse();
-                    errorResponse.setMessage("No Projects are created yet!");
-                    return new ResponseEntity<>(errorResponse, HttpStatus.OK);
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("No Projects are created yet!");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.OK);
                 }
             }
             else{
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("User not present!");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("User not present!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
         else{
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Not valid User!");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
     public List<User> getAllDeletedUsers() {
         List<User> deletedUsers = userRepo.showUsersbyStatus("DELETED");
         return deletedUsers;
+    }
+
+    public ResponseEntity<?> updateProduct(Project updatedProduct, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if(userObj!=null && userObj.getStatus().equals("ACTIVE")) {
+            if (updatedProduct.getProjectName() != null) {
+                Project project = userObj.getProjects().stream()
+                        .filter(p -> p.getProjectName().equals(updatedProduct.getProjectName()))
+                        .findFirst()
+                        .orElse(null);
+                if (project != null) {
+                    Product fetchProduct =  updatedProduct.getProducts().get(0);
+                    // Only first product in project will be fetched using this.
+                    Product product = project.getProducts().stream()
+                            .filter(p -> p.getProductName().equals(fetchProduct.getProductName()))
+                            .findFirst()
+                            .orElse(null);
+                    if (product != null) {
+                        List<Product> listOfProducts = new ArrayList<>();
+                        product.setArea(fetchProduct.getArea());
+                        product.setInclination(fetchProduct.getInclination());
+                        product.setOrientation(fetchProduct.getOrientation());
+                        product.setLongitude(fetchProduct.getLongitude());
+                        product.setLatitude(fetchProduct.getLatitude());
+                        product.setCloudCover(fetchProduct.getCloudCover());
+                        product.setSystemLoss(fetchProduct.getSystemLoss());
+                        product.setPowerPeak(fetchProduct.getPowerPeak());
+                        listOfProducts.add(product);
+                        project.setProducts(listOfProducts);
+                        userRepo.save(userObj);
+                        return new ResponseEntity<>(project, HttpStatus.OK);
+                    }
+                    else{
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("Product name is empty or given Product is not present");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                    }
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Project is not present it might be deleted or inactive");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                }
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> deleteProduct(Project productDetails, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if(userObj!=null && userObj.getStatus().equals("ACTIVE")) {
+            if (productDetails.getProjectName() != null) {
+                Project project = userObj.getProjects().stream()
+                        .filter(p -> p.getProjectName().equals(productDetails.getProjectName()))
+                        .findFirst()
+                        .orElse(null);
+                if (project != null) {
+                    Product fetchProduct = productDetails.getProducts().get(0);
+                    List<Product> listOfProducts = project.getProducts();
+                    listOfProducts.removeIf(product -> product.getProductName().equals(fetchProduct.getProductName()));
+                    userRepo.save(userObj);
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Product deleted successfully");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Project is not present it might be deleted or inactive");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                }
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 }

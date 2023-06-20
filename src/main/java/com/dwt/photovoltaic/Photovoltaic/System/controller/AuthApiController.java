@@ -38,8 +38,8 @@ public class AuthApiController {
            return isAvailable;
        }
        catch(Exception e){
-           ErrorResponse errorResponse = new ErrorResponse();
-           errorResponse.setMessage("Multiple username present with same name, please try another!");
+           ResponseMessage responseMessage = new ResponseMessage();
+           responseMessage.setMessage("Multiple username present with same name, please try another!");
            return false;
        }
 
@@ -52,15 +52,15 @@ public class AuthApiController {
                 User userObj = userService.registerUser(user);
                 return new ResponseEntity<>(userObj, HttpStatus.OK);
             }else{
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("Username not available, please try another!");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Username not available, please try another!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Multiple username present with same name, please try another!");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Multiple username present with same name, please try another!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -73,15 +73,15 @@ public class AuthApiController {
                 return new ResponseEntity<>(companyObj, HttpStatus.OK);
             }
             else{
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("Username not available, please try another!");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Username not available, please try another!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
         catch(Exception e){
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("Multiple username present with same name, please try another!");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Multiple username present with same name, please try another!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
     @PostMapping(value = "/userLogin")
@@ -100,8 +100,8 @@ public class AuthApiController {
             return ResponseEntity.ok().body(response);
 
         } catch (BadCredentialsException ex) {
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Username or Password is incorrect");
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Username or Password is incorrect");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
@@ -122,8 +122,8 @@ public class AuthApiController {
             return ResponseEntity.ok().body(response);
 
         } catch (BadCredentialsException ex) {
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Username or Password is incorrect");
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Username or Password is incorrect");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }

@@ -1,6 +1,6 @@
 package com.dwt.photovoltaic.Photovoltaic.System.model;
 
-public class ErrorResponse {
+public class ResponseMessage {
      private String message;
 
      public String getMessage() {
