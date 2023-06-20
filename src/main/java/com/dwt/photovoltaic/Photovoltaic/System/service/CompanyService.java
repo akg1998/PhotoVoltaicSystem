@@ -1,9 +1,8 @@
 package com.dwt.photovoltaic.Photovoltaic.System.service;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
-import com.dwt.photovoltaic.Photovoltaic.System.model.ErrorResponse;
+import com.dwt.photovoltaic.Photovoltaic.System.model.ResponseMessage;
 import com.dwt.photovoltaic.Photovoltaic.System.model.Product;
-import com.dwt.photovoltaic.Photovoltaic.System.model.Project;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class CompanyService {
@@ -40,7 +38,7 @@ public class CompanyService {
         if (username != null) {
             Company companyObj = companyRepo.findByUsername(username);
             List<Product> products = companyObj.getProducts();
-            productDetails.setId(UUID.randomUUID().toString());
+            //productDetails.setId(UUID.randomUUID().toString());
             if (companyObj != null) {
                 if(products == null) {
                     List<Product> newProductList = new ArrayList<>();
@@ -56,13 +54,15 @@ public class CompanyService {
                     return new ResponseEntity<>(productDetails, HttpStatus.OK);
                 }
             } else {
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.setMessage("Invalid Data! Contact administrator");
-                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Company account is not present it might be deleted or inactive");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage("You are not valid user to perform this action!");
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 }

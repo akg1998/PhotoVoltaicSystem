@@ -1,9 +1,8 @@
 package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.Company;
-import com.dwt.photovoltaic.Photovoltaic.System.model.ErrorResponse;
+import com.dwt.photovoltaic.Photovoltaic.System.model.ResponseMessage;
 import com.dwt.photovoltaic.Photovoltaic.System.model.Product;
-import com.dwt.photovoltaic.Photovoltaic.System.model.Project;
 import com.dwt.photovoltaic.Photovoltaic.System.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,9 +25,9 @@ public class CompanyController {
             return new ResponseEntity<>(company, HttpStatus.OK);
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -41,9 +40,9 @@ public class CompanyController {
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
         catch(Exception e){
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setMessage("Invalid Data! Contact administrator");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Invalid Data! Contact administrator");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
 
