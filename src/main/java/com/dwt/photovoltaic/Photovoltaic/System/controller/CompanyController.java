@@ -37,7 +37,7 @@ public class CompanyController {
     public ResponseEntity<?> saveProductForCompany(@RequestBody Product productDetails, Principal principal){
         try {
             ResponseEntity<?> message = companyService.saveProductDetails(principal.getName(), productDetails);
-            return new ResponseEntity<>(message, HttpStatus.OK);
+            return new ResponseEntity<>(message, message.getStatusCode());
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();

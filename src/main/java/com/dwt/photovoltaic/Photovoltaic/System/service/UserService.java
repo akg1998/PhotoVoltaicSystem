@@ -20,12 +20,6 @@ public class UserService {
     UserRepository userRepo;
     @Autowired
     CompanyRepository companyRepo;
-    private final MongoTemplate mongoTemplate;
-
-
-    public UserService(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
-    }
 
     public boolean checkAvailability(String username){
         User userObj = userRepo.findByUsername(username);
@@ -292,6 +286,32 @@ public class UserService {
             else{
                 ResponseMessage responseMessage = new ResponseMessage();
                 responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> getAllProducts(String username) {
+        User userObj = userRepo.findByUsername(username);
+        if(userObj!=null){
+            List<Company> companies = companyRepo.findAll();
+            if(companies!=null){
+                List<Product> products = new ArrayList<>();
+                for (Company company: companies){
+                    if(company.getProducts() != null) {
+                        products.addAll(company.getProducts());
+                    }
+                }
+                return new ResponseEntity<>(products, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("No Companies are present!");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }

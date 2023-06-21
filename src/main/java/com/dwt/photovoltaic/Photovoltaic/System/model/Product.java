@@ -24,6 +24,7 @@ public class Product {
     private BigDecimal latitude;
     private BigDecimal cloudCover;
     private Integer systemLoss;
+    private String status; // It can have two values, either it will be ACTIVE or INACTIVE
 
     public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude.setScale(2, BigDecimal.ROUND_HALF_UP);;
