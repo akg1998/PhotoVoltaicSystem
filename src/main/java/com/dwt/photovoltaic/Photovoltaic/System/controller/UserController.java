@@ -117,4 +117,11 @@ public class UserController {
         ResponseEntity<?> deletedProduct = userService.deleteProduct(productDetails,principal.getName());
         return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
     }
+
+    @GetMapping(value="/showCompanyProducts")
+    @CrossOrigin
+    public ResponseEntity<?> showAllCompanyProducts(Principal principal){
+        ResponseEntity<?> allProducts = userService.getAllProducts(principal.getName());
+        return new ResponseEntity<>(allProducts, allProducts.getStatusCode());
+    }
 }
