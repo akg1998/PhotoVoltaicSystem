@@ -112,10 +112,13 @@ public class UserService {
                     }
                         for(Product product : products){
                             //product.setId(UUID.randomUUID().toString());
-                            project.getProducts().add(product);
-                            userRepo.save(user);
-                            return new ResponseEntity<>(product, HttpStatus.OK);
+                            boolean status = userRepo.existsByProjectsProductName(product.getProductName());
+                            if(status == false) {
+                                project.getProducts().add(product);
+                                userRepo.save(user);
+                            }
                         }
+                    return new ResponseEntity<>(products, HttpStatus.OK);
                     }
                     else {
                         ResponseMessage responseMessage = new ResponseMessage();
