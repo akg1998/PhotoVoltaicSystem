@@ -4,7 +4,6 @@ import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,6 +19,7 @@ public class UserService {
     UserRepository userRepo;
     @Autowired
     CompanyRepository companyRepo;
+
 
     public boolean checkAvailability(String username){
         User userObj = userRepo.findByUsername(username);
@@ -100,7 +100,7 @@ public class UserService {
     public ResponseEntity<?> saveProductDetails(Project projectObj, String username) {
         User user = userRepo.findByUsername(username);
         if (user != null && user.getStatus().equals("ACTIVE")) {
-            if (projectObj.getProjectName()!=null) {
+            if (projectObj.getProjectName() != null) {
                 Project project = user.getProjects().stream()
                         .filter(p -> p.getProjectName().equals(projectObj.getProjectName()))
                         .findFirst()
@@ -110,10 +110,9 @@ public class UserService {
                     if (project.getProducts() == null) {
                         project.setProducts(new ArrayList<>()); // Initialize the products list
                     }
-                        for(Product product : products){
-                            //product.setId(UUID.randomUUID().toString());
-                            boolean status = userRepo.existsByProjectsProductName(product.getProductName());
-                            if(status == false) {
+                        for(Product product : products) {
+                            boolean exists = userRepo.existsByProjectNameAndProductName(projectObj.getProjectName(),product.getProductName());
+                            if(exists != true) {
                                 project.getProducts().add(product);
                                 userRepo.save(user);
                             }
