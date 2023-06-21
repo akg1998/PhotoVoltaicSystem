@@ -1,6 +1,5 @@
 package com.dwt.photovoltaic.Photovoltaic.System.repository;
 
-import com.dwt.photovoltaic.Photovoltaic.System.model.Product;
 import com.dwt.photovoltaic.Photovoltaic.System.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -14,6 +13,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     @Query("{ 'status' : ?0 }")
     List<User> showUsersbyStatus(String status);
 
-    @Query(value = "{ 'projects.products.productName' : ?0 }", exists = true)
-    boolean existsByProjectsProductName(String productName);
+    @Query(value = "{ 'projects': { $elemMatch: { 'projectName': ?0, 'products.productName': ?1 } } }", exists = true)
+    boolean existsByProjectNameAndProductName(String projectName, String productName);
 }
