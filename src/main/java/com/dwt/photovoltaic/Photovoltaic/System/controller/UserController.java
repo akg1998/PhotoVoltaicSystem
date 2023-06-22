@@ -108,7 +108,7 @@ public class UserController {
     @CrossOrigin
     public ResponseEntity<?> updateProduct(@RequestBody Project updatedProduct, Principal principal){
         ResponseEntity<?> project = userService.updateProduct(updatedProduct, principal.getName());
-        return new ResponseEntity<>(project.getBody(), HttpStatus.OK);
+        return new ResponseEntity<>(project.getBody(),project.getStatusCode());
     }
 
     @DeleteMapping(value = "/deleteProduct")
