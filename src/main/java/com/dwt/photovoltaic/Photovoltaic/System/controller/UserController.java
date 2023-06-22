@@ -111,11 +111,11 @@ public class UserController {
         return new ResponseEntity<>(project.getBody(),project.getStatusCode());
     }
 
-    @DeleteMapping(value = "/deleteProduct")
+    @PostMapping(value = "/deleteProduct")
     @CrossOrigin
     public ResponseEntity<?> deleteProduct(@RequestBody Project productDetails, Principal principal){
         ResponseEntity<?> deletedProduct = userService.deleteProduct(productDetails,principal.getName());
-        return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
+        return new ResponseEntity<>(deletedProduct, deletedProduct.getStatusCode());
     }
 
     @GetMapping(value="/showCompanyProducts")
@@ -124,4 +124,18 @@ public class UserController {
         ResponseEntity<?> allProducts = userService.getAllProducts(principal.getName());
         return new ResponseEntity<>(allProducts, allProducts.getStatusCode());
     }
+
+    @GetMapping(value="/showProducts/{projectName}")
+    @CrossOrigin
+    public ResponseEntity<?> showAllProducts(@PathVariable String projectName, Principal principal){
+        ResponseEntity<?> products = userService.getProductsByProjectName(projectName, principal.getName());
+        return new ResponseEntity<>(products, products.getStatusCode());
+    }
+
+//    @PostMapping(value="/generateReport")
+//    @CrossOrigin
+//    public ResponseEntity<?> generateReport(@RequestBody Project projectDetails, Principal principal){
+//        ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
+//        return new ResponseEntity<>(result, result.getStatusCode());
+//    }
 }

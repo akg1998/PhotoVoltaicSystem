@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,12 @@ public class UserService {
     UserRepository userRepo;
     @Autowired
     CompanyRepository companyRepo;
+
+//    private final RestTemplate restTemplate;
+//
+//    public UserService(RestTemplate restTemplate) {
+//        this.restTemplate = restTemplate;
+//    }
 
 
     public boolean checkAvailability(String username){
@@ -313,4 +321,67 @@ public class UserService {
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
+
+    public ResponseEntity<?> getProductsByProjectName(String projectName, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
+            if(projectName!=null){
+                Project projectDetails = userObj.getProjects().stream()
+                        .filter(p -> p.getProjectName().equals(projectName))
+                        .findFirst()
+                        .orElse(null);
+                if(projectDetails!=null){
+                    if(projectDetails.getProducts()!=null){
+                        List<Product> products = projectDetails.getProducts();
+                        return new ResponseEntity<>(products, HttpStatus.OK);
+                    }
+                    else{
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("No products are present");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                    }
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("No such project present");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                }
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+//    public ResponseEntity<?> generateReport(Project projectDetails, String username) {
+//        User userObj = userRepo.findByUsername(username);
+//        String apiUrl = "https://api.weatherbit.io/v2.0/history/daily?";
+//        if(userObj!=null && userObj.getStatus().equals("ACTIVE")) {
+//            // It means user clicked on any one of the product
+//            if(projectDetails.getProducts()!=null){
+//                Product product = projectDetails.getProducts().get(0);
+//                BigDecimal latitude = product.getLatitude();
+//                BigDecimal longitude = product.getLongitude();
+//
+//            }
+//            // It means user clicked on Project, and it should generate report for all products
+//            else{
+//
+//            }
+//        }
+//        else{
+//            ResponseMessage responseMessage = new ResponseMessage();
+//            responseMessage.setMessage("Not valid User!");
+//            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+//        }
+//    }
+
+
 }
