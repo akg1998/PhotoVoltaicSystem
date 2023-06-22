@@ -216,32 +216,22 @@ public class UserService {
                         .findFirst()
                         .orElse(null);
                 if (project != null) {
-                    Product fetchProduct =  updatedProduct.getProducts().get(0);
-                    // Only first product in project will be fetched using this.
-                    Product product = project.getProducts().stream()
-                            .filter(p -> p.getProductName().equals(fetchProduct.getProductName()))
-                            .findFirst()
-                            .orElse(null);
-                    if (product != null) {
-                        List<Product> listOfProducts = new ArrayList<>();
-                        product.setArea(fetchProduct.getArea());
-                        product.setInclination(fetchProduct.getInclination());
-                        product.setOrientation(fetchProduct.getOrientation());
-                        product.setLongitude(fetchProduct.getLongitude());
-                        product.setLatitude(fetchProduct.getLatitude());
-                        product.setCloudCover(fetchProduct.getCloudCover());
-                        product.setSystemLoss(fetchProduct.getSystemLoss());
-                        product.setPowerPeak(fetchProduct.getPowerPeak());
+                    List<Product> fetchProducts =  updatedProduct.getProducts();
+                    List<Product> listOfProducts = new ArrayList<>();
+                    for(Product product: fetchProducts){
+                        product.setArea(product.getArea());
+                        product.setInclination(product.getInclination());
+                        product.setOrientation(product.getOrientation());
+                        product.setLongitude(product.getLongitude());
+                        product.setLatitude(product.getLatitude());
+                        product.setCloudCover(product.getCloudCover());
+                        product.setSystemLoss(product.getSystemLoss());
+                        product.setPowerPeak(product.getPowerPeak());
                         listOfProducts.add(product);
                         project.setProducts(listOfProducts);
-                        userRepo.save(userObj);
-                        return new ResponseEntity<>(project, HttpStatus.OK);
                     }
-                    else{
-                        ResponseMessage responseMessage = new ResponseMessage();
-                        responseMessage.setMessage("Product name is empty or given Product is not present");
-                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-                    }
+                    userRepo.save(userObj);
+                    return new ResponseEntity<>(project, HttpStatus.OK);
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();
