@@ -331,7 +331,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> getProductsByProjectName(String projectName, String username) {
+    public ResponseEntity<?> getProjectsByProjectName(String projectName, String username) {
         User userObj = userRepo.findByUsername(username);
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
             if(projectName!=null){
@@ -340,15 +340,7 @@ public class UserService {
                         .findFirst()
                         .orElse(null);
                 if(projectDetails!=null){
-                    if(projectDetails.getProducts()!=null){
-                        List<Product> products = projectDetails.getProducts();
-                        return new ResponseEntity<>(products, HttpStatus.OK);
-                    }
-                    else{
-                        ResponseMessage responseMessage = new ResponseMessage();
-                        responseMessage.setMessage("No products are present");
-                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-                    }
+                    return new ResponseEntity<>(projectDetails, HttpStatus.OK);
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();

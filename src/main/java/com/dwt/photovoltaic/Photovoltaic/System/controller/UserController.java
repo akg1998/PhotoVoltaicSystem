@@ -125,11 +125,11 @@ public class UserController {
         return new ResponseEntity<>(allProducts, allProducts.getStatusCode());
     }
 
-    @GetMapping(value="/showProducts/{projectName}")
+    @GetMapping(value="/showProjects/{projectName}")
     @CrossOrigin
     public ResponseEntity<?> showAllProducts(@PathVariable String projectName, Principal principal){
-        ResponseEntity<?> products = userService.getProductsByProjectName(projectName, principal.getName());
-        return new ResponseEntity<>(products, products.getStatusCode());
+        ResponseEntity<?> projects = userService.getProjectsByProjectName(projectName, principal.getName());
+        return new ResponseEntity<>(projects.getBody(), projects.getStatusCode());
     }
 
     @PostMapping(value="/generateReport")
