@@ -3,9 +3,9 @@ package com.dwt.photovoltaic.Photovoltaic.System.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Data
@@ -25,13 +25,14 @@ public class Product {
     private BigDecimal cloudCover;
     private Integer systemLoss;
     private String status; // It can have two values, either it will be ACTIVE or INACTIVE
+    private List<PhotovoltaicCell> weatherInfo;
 
     public void setLongitude(BigDecimal longitude) {
-        this.longitude = longitude.setScale(2, BigDecimal.ROUND_HALF_UP);;
+        this.longitude = longitude.setScale(4, BigDecimal.ROUND_HALF_UP);;
     }
 
     public void setLatitude(BigDecimal latitude) {
-        this.latitude = latitude.setScale(2, BigDecimal.ROUND_HALF_UP);;
+        this.latitude = latitude.setScale(4, BigDecimal.ROUND_HALF_UP);;
     }
 
     public void setCloudCover(BigDecimal cloudCover) {

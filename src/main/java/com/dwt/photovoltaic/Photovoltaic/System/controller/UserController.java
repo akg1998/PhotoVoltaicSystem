@@ -132,10 +132,10 @@ public class UserController {
         return new ResponseEntity<>(products, products.getStatusCode());
     }
 
-//    @PostMapping(value="/generateReport")
-//    @CrossOrigin
-//    public ResponseEntity<?> generateReport(@RequestBody Project projectDetails, Principal principal){
-//        ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
-//        return new ResponseEntity<>(result, result.getStatusCode());
-//    }
+    @PostMapping(value="/generateReport")
+    @CrossOrigin
+    public ResponseEntity<?> generateReport(@RequestBody Project projectDetails, Principal principal){
+        ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
+        return new ResponseEntity<>(result, result.getStatusCode());
+    }
 }
