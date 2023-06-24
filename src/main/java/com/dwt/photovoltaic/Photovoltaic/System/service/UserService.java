@@ -307,10 +307,11 @@ public class UserService {
 
     public ResponseEntity<?> getAllProducts(String username) {
         User userObj = userRepo.findByUsername(username);
+        Company companyObj = companyRepo.findByUsername(username);
+        List<Product> products = new ArrayList<>();
         if(userObj!=null){
             List<Company> companies = companyRepo.findAll();
             if(companies!=null){
-                List<Product> products = new ArrayList<>();
                 for (Company company: companies){
                     if(company.getProducts() != null) {
                         products.addAll(company.getProducts());
@@ -324,9 +325,25 @@ public class UserService {
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         }
+        else if(companyObj!=null){
+            products = companyObj.getProducts();
+            if(products!=null){
+                return new ResponseEntity<>(products, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("No products present");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
         else{
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Not valid User!");
+            if(userObj == null){
+                responseMessage.setMessage("Invalid User Credentials");
+            }
+            else{
+                responseMessage.setMessage("Invalid Company credentials");
+            }
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
