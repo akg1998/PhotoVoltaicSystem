@@ -408,14 +408,37 @@ public class UserService {
             }
             // It means user clicked on Project, and it should generate report for all products
             else {
-
+                // ********************************* Check condition for read-only
+                if(project.getProducts()!=null){
+                    List<Product> products = project.getProducts();
+                    for(Product product: products){
+                        List<PhotovoltaicCell> weatherInfo = product.getWeatherInfo();
+                        if (weatherInfo != null) {
+                            numberOfdays = weatherInfo.size();
+                            if(numberOfdays < 30) {
+                                results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo);
+                                userRepo.save(userObj);
+                            }
+                        } else {
+                            results = calculateElectricityProduced(product, product, numberOfdays, null);
+                            userRepo.save(userObj);
+                        }
+                    }
+                    ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
+                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                    return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("No products are present to generate report");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                }
             }
         } else {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage("Not valid User!");
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
-        return null;
     }
 
     public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo) {
