@@ -250,9 +250,7 @@ public class UserService {
                         product.setOrientation(product.getOrientation());
                         product.setLongitude(product.getLongitude());
                         product.setLatitude(product.getLatitude());
-                        product.setCloudCover(product.getCloudCover());
                         product.setSystemLoss(product.getSystemLoss());
-                        product.setPowerPeak(product.getPowerPeak());
                         listOfProducts.add(product);
                         project.setProducts(listOfProducts);
                     }
@@ -378,7 +376,7 @@ public class UserService {
         }
     }
 
-    // TO-DOS Pending:- Once Report generated mark it "read-only" and create excel file and sent it through email
+    // TO-DOS Pending:- Once Report generated mark it "read-only"
     public ResponseEntity<?> generateReport(Project projectDetails, String username) {
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
@@ -435,7 +433,7 @@ public class UserService {
                         }
                     }
                     generateExcelFileReport(project.getProducts());
-                    sendEmailWithAttachment(userObj,project.getProducts());
+                   // sendEmailWithAttachment(userObj,project.getProducts());
 
                     // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
                     ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
@@ -509,12 +507,14 @@ public class UserService {
                 photovoltaicCell.setSolarIrradiance(solarIrradiance);
                 photovoltaicCell.setWeatherDate(dateTime);
                 photovoltaicCell.setElectricityProduced(electricityProduced);
+                photovoltaicCell.setPowerPeak(solarIrradiance*panelArea);
                 if (weatherInfo != null) {
                     weatherInfo.add(i, photovoltaicCell);
                 } else {
                     photovoltaicCells.add(photovoltaicCell);
                 }
             }
+            existingProduct.setLocationOfProduct(jsonObject.getString("city_name")+","+jsonObject.getString("country_code"));
             // Here some product object should be fetched from existing product list then only it will update existing product else it will create new product (That's the TRICK)
             if(weatherInfo!=null){
                 existingProduct.setWeatherInfo(weatherInfo);
@@ -534,7 +534,6 @@ public class UserService {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage(response.getBody());
             parameters.put("responseMessage", responseMessage);
-
             return parameters;
         }
     }
@@ -548,24 +547,30 @@ public class UserService {
                 // Create the data rows
                 Row headerRow2 = sheet.createRow(0);
                 headerRow2.createCell(0).setCellValue("Date");
-                headerRow2.createCell(1).setCellValue("Solar Irradiance");
-                headerRow2.createCell(2).setCellValue("Panel Area");
-                headerRow2.createCell(3).setCellValue("System Loss");
-                headerRow2.createCell(4).setCellValue("Cloud Cover");
+                headerRow2.createCell(1).setCellValue("Power Peak (in W)");
+                headerRow2.createCell(2).setCellValue("Panel Area (in m^2)");
+                headerRow2.createCell(3).setCellValue("System Loss (in %)");
+                headerRow2.createCell(4).setCellValue("Cloud Cover (in %)");
                 headerRow2.createCell(5).setCellValue("Sun Hours");
-                headerRow2.createCell(6).setCellValue("Electricity Produced");
+                headerRow2.createCell(6).setCellValue("Orientation");
+                headerRow2.createCell(7).setCellValue("Inclination (in angle)");
+                headerRow2.createCell(8).setCellValue("Location of Product (City, Country Code)");
+                headerRow2.createCell(9).setCellValue("Electricity Produced (in kWh)");
+
                 if (product.getWeatherInfo() != null) {
                     int rowIndex = 1; // Start the rowIndex at 2 (assuming you already have header row at index 0 and data row at index 1)
                     for (PhotovoltaicCell pCell : product.getWeatherInfo()) {
                         Row dataRow1 = sheet.createRow(rowIndex);
                         dataRow1.createCell(0).setCellValue(pCell.getWeatherDate());
-                        dataRow1.createCell(1).setCellValue(pCell.getSolarIrradiance());
+                        dataRow1.createCell(1).setCellValue(pCell.getSolarIrradiance()*pCell.getPanelArea());
                         dataRow1.createCell(2).setCellValue(pCell.getPanelArea());
                         dataRow1.createCell(3).setCellValue(pCell.getSystemLoss());
                         dataRow1.createCell(4).setCellValue(pCell.getCloudCover());
                         dataRow1.createCell(5).setCellValue(pCell.getSunHours());
-                        dataRow1.createCell(6).setCellValue(pCell.getElectricityProduced());
-
+                        dataRow1.createCell(6).setCellValue(product.getOrientation());
+                        dataRow1.createCell(7).setCellValue(product.getInclination().toString());
+                        dataRow1.createCell(8).setCellValue(product.getLocationOfProduct());
+                        dataRow1.createCell(9).setCellValue(pCell.getElectricityProduced());
                         rowIndex++;
                     }
                 }
@@ -577,8 +582,12 @@ public class UserService {
                     sheet.autoSizeColumn(4);
                     sheet.autoSizeColumn(5);
                     sheet.autoSizeColumn(6);
+                    sheet.autoSizeColumn(7);
+                    sheet.autoSizeColumn(8);
+                    sheet.autoSizeColumn(9);
 
-                    // Save the workbook to a file
+
+                // Save the workbook to a file
                     try (FileOutputStream fileOut = new FileOutputStream(fileName)) {
                         workbook.write(fileOut);
                     }

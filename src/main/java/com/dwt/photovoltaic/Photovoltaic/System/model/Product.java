@@ -17,14 +17,13 @@ public class Product {
 //    private String id;
     private String productName;
     private String orientation;
-    private BigDecimal powerPeak;
     private BigDecimal inclination;
     private BigDecimal area;
     private BigDecimal longitude;
     private BigDecimal latitude;
-    private BigDecimal cloudCover;
     private Integer systemLoss;
     private String status; // It can have two values, either it will be ACTIVE or INACTIVE
+    private String locationOfProduct;
     private List<PhotovoltaicCell> weatherInfo;
 
     public void setLongitude(BigDecimal longitude) {
@@ -33,14 +32,6 @@ public class Product {
 
     public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude.setScale(4, BigDecimal.ROUND_HALF_UP);;
-    }
-
-    public void setCloudCover(BigDecimal cloudCover) {
-        this.cloudCover = cloudCover.setScale(2, BigDecimal.ROUND_HALF_UP);;
-    }
-
-    public void setPowerPeak(BigDecimal powerPeak) {
-        this.powerPeak = powerPeak.setScale(2, BigDecimal.ROUND_HALF_UP);
     }
 
     // Setter method for inclination with two decimal places
