@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,6 +16,7 @@ public class PhotovoltaicCell {
     private double systemLoss;
     private int cloudCover;
     private int sunHours;
+    private double powerPeak;
 
     public void setPanelArea(double panelArea) {
         this.panelArea = Math.round(panelArea * 100.0) / 100.0;
@@ -27,4 +26,7 @@ public class PhotovoltaicCell {
         this.systemLoss = Math.round(systemLoss * 100.0) / 100.0;
     }
 
+    public void setPowerPeak(double powerPeak) {
+        this.powerPeak = Math.round(powerPeak * 100.0) / 100.0;
+    }
 }
