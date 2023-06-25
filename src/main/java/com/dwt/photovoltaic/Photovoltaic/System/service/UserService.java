@@ -3,9 +3,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -418,7 +416,7 @@ public class UserService {
                     userRepo.save(userObj);
                 }
                 generateExcelFileReport(project.getProducts());
-                sendEmailWithAttachment(userObj,project.getProducts());
+                //sendEmailWithAttachment(userObj,project.getProducts());
                 ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                 ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                 return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
@@ -442,7 +440,7 @@ public class UserService {
                         }
                     }
                     generateExcelFileReport(project.getProducts());
-                   // sendEmailWithAttachment(userObj,project.getProducts());
+                    //sendEmailWithAttachment(userObj,project.getProducts());
 
                     // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
                     ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
@@ -495,7 +493,7 @@ public class UserService {
             JSONArray jsonArray = jsonObject.getJSONArray("data");
             for (int i = 0; i < jsonArray.length(); i++) {
                 // DATA FROM WEATHER API
-                int solarIrradiance = jsonArray.getJSONObject(i).getInt("solar_rad");
+                int solarIrradiance = jsonArray.getJSONObject(i).getInt("max_dni");
                 int cloudCover = jsonArray.getJSONObject(i).getInt("clouds");
                 String dateTime = jsonArray.getJSONObject(i).getString("datetime");
                 long unixTimestamp = jsonArray.getJSONObject(i).getLong("max_temp_ts");
@@ -552,6 +550,16 @@ public class UserService {
         for(Product product : products) {
             String fileName = product.getProductName() + ".xlsx";
             try (Workbook workbook = new XSSFWorkbook()) {
+                // Create a font with bold style and increased font size
+                Font headerFont = workbook.createFont();
+                headerFont.setBold(true);
+                headerFont.setFontHeightInPoints((short) 12); // Set the desired font size
+
+                // Create a cell style for the header cells and set the font
+                CellStyle headerCellStyle = workbook.createCellStyle();
+                headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
+                headerCellStyle.setFont(headerFont);
+
                 Sheet sheet = workbook.createSheet("Report for Photovoltaic product: " + product.getProductName());
 
                 // Create the data rows
@@ -567,6 +575,12 @@ public class UserService {
                 headerRow2.createCell(8).setCellValue("Location of Product (City, Country Code)");
                 headerRow2.createCell(9).setCellValue("Electricity Produced (in kWh)");
 
+                // Apply the header cell style to the header row
+                for (int i = 0; i <= 9; i++) {
+                    Cell cell = headerRow2.getCell(i);
+                    cell.setCellStyle(headerCellStyle);
+                }
+
                 if (product.getWeatherInfo() != null) {
                     int rowIndex = 1; // Start the rowIndex at 2 (assuming you already have header row at index 0 and data row at index 1)
                     for (PhotovoltaicCell pCell : product.getWeatherInfo()) {
@@ -581,6 +595,15 @@ public class UserService {
                         dataRow1.createCell(7).setCellValue(product.getInclination().toString());
                         dataRow1.createCell(8).setCellValue(product.getLocationOfProduct());
                         dataRow1.createCell(9).setCellValue(pCell.getElectricityProduced());
+
+                        // Apply center alignment style to each cell in the row
+                        for (int i = 0; i <= 9; i++) {
+                            Cell cell = dataRow1.getCell(i);
+                            CellStyle cellStyle = workbook.createCellStyle();
+                            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+                            cell.setCellStyle(cellStyle);
+                        }
+
                         rowIndex++;
                     }
                 }
