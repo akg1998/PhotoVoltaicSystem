@@ -523,6 +523,7 @@ public class UserService {
                     photovoltaicCells.add(photovoltaicCell);
                 }
             }
+
             existingProduct.setLocationOfProduct(jsonObject.getString("city_name")+","+jsonObject.getString("country_code"));
             // Here some product object should be fetched from existing product list then only it will update existing product else it will create new product (That's the TRICK)
             if(weatherInfo!=null){
