@@ -3,6 +3,10 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -402,6 +408,7 @@ public class UserService {
                     results = calculateElectricityProduced(product, productObj, numberOfdays, null);
                     userRepo.save(userObj);
                 }
+                generateExcelFileReport(project.getProducts());
                 ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                 ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                 return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
@@ -525,4 +532,52 @@ public class UserService {
         }
     }
 
+    public void generateExcelFileReport(List<Product> products){
+        for(Product product : products) {
+            String fileName = product.getProductName()+".xlsx";
+            try (Workbook workbook = new XSSFWorkbook()) {
+                Sheet sheet = workbook.createSheet("Report for Photovoltaic product: " + product.getProductName());
+
+                // Create the data rows
+                Row headerRow2 = sheet.createRow(0);
+                headerRow2.createCell(0).setCellValue("Date");
+                headerRow2.createCell(1).setCellValue("Solar Irradiance");
+                headerRow2.createCell(2).setCellValue("Panel Area");
+                headerRow2.createCell(3).setCellValue("System Loss");
+                headerRow2.createCell(4).setCellValue("Cloud Cover");
+                headerRow2.createCell(5).setCellValue("Sun Hours");
+                headerRow2.createCell(6).setCellValue("Electricity Produced");
+
+                int rowIndex = 1; // Start the rowIndex at 2 (assuming you already have header row at index 0 and data row at index 1)
+                for(PhotovoltaicCell pCell : product.getWeatherInfo()) {
+                    Row dataRow1 = sheet.createRow(rowIndex);
+                    dataRow1.createCell(0).setCellValue(pCell.getWeatherDate());
+                    dataRow1.createCell(1).setCellValue(pCell.getSolarIrradiance());
+                    dataRow1.createCell(2).setCellValue(pCell.getPanelArea());
+                    dataRow1.createCell(3).setCellValue(pCell.getSystemLoss());
+                    dataRow1.createCell(4).setCellValue(pCell.getCloudCover());
+                    dataRow1.createCell(5).setCellValue(pCell.getSunHours());
+                    dataRow1.createCell(6).setCellValue(pCell.getElectricityProduced());
+
+                    rowIndex++;
+                }
+
+                // Auto-size the columns
+                sheet.autoSizeColumn(0);
+                sheet.autoSizeColumn(1);
+                sheet.autoSizeColumn(2);
+                sheet.autoSizeColumn(3);
+                sheet.autoSizeColumn(4);
+                sheet.autoSizeColumn(5);
+                sheet.autoSizeColumn(6);
+
+                // Save the workbook to a file
+                try (FileOutputStream fileOut = new FileOutputStream(fileName)) {
+                    workbook.write(fileOut);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
