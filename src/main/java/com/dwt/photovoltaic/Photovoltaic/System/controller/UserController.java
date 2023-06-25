@@ -152,4 +152,11 @@ public class UserController {
         ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
         return new ResponseEntity<>(result, result.getStatusCode());
     }
+
+    @GetMapping(value="/generateGraph")
+    @CrossOrigin
+    public ResponseEntity<?> generateGraph(Principal principal){
+        ResponseEntity<?> graphData = userService.generateGraphData(principal.getName());
+        return new ResponseEntity<>(graphData.getBody(), graphData.getStatusCode());
+    }
 }

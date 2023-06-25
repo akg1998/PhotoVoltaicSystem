@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -691,4 +693,71 @@ public class UserService {
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
+
+    public ResponseEntity<?> generateGraphData(String username) {
+        User userObj = userRepo.findByUsername(username);
+        if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
+            // Assuming you have a data source containing weatherDate and electricityProduced values
+            List<DataEntry> dataSource = getDataSource();
+
+            // Create arrays to store weatherDate and electricityProduced values
+            String[] weatherDates = new String[dataSource.size()];
+            double[] electricityProducedValues = new double[dataSource.size()];
+
+            // Iterate over the data source and populate the arrays
+            for (int i = 0; i < dataSource.size(); i++) {
+                DataEntry entry = dataSource.get(i);
+                weatherDates[i] = entry.getWeatherDate();
+                electricityProducedValues[i] = entry.getElectricityProduced();
+            }
+            // Return the arrays
+            return new ResponseEntity<>(new DataArrays(weatherDates, electricityProducedValues), HttpStatus.OK);
+
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public List<DataEntry> getDataSource() {
+        List<DataEntry> dataSource = new ArrayList<>();
+
+        try (FileInputStream file = new FileInputStream("finalTestProduct2.xlsx")) {
+            // Load the workbook
+            Workbook workbook = new XSSFWorkbook(file);
+
+            // Get the first sheet
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Iterate over the rows
+            Iterator<Row> rowIterator = sheet.iterator();
+            if (rowIterator.hasNext()) {
+                rowIterator.next(); // Move to the next row
+            }
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                // Assuming weatherDate is in the first column (index 0) and electricityProduced is in the second column (index 1)
+                Cell weatherDateCell = row.getCell(0);
+                Cell electricityProducedCell = row.getCell(1);
+
+                // Extract the values from the cells
+                String weatherDate = weatherDateCell.getStringCellValue();
+                double electricityProduced = electricityProducedCell.getNumericCellValue();
+
+                // Create a DataEntry object and add it to the data source
+                DataEntry entry = new DataEntry(weatherDate, electricityProduced);
+                dataSource.add(entry);
+            }
+
+            // Close the workbook
+            workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return dataSource;
+    }
+
 }
