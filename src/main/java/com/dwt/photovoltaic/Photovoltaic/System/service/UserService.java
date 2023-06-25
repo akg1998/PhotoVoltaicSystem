@@ -36,6 +36,8 @@ public class UserService {
     UserRepository userRepo;
     @Autowired
     CompanyRepository companyRepo;
+    @Autowired
+    private EmailService emailService;
 
     private final RestTemplate restTemplate;
 
@@ -409,6 +411,7 @@ public class UserService {
                     userRepo.save(userObj);
                 }
                 generateExcelFileReport(project.getProducts());
+                sendEmailWithAttachment(userObj,project.getProducts());
                 ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                 ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                 return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
@@ -427,10 +430,14 @@ public class UserService {
                                 userRepo.save(userObj);
                             }
                         } else {
-                            results = calculateElectricityProduced(product, product, numberOfdays, null);
+                            results = calculateElectricityProduced(product, product, 0, null);
                             userRepo.save(userObj);
                         }
                     }
+                    generateExcelFileReport(project.getProducts());
+                    sendEmailWithAttachment(userObj,project.getProducts());
+
+                    // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
                     ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                     ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                     return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
@@ -519,7 +526,7 @@ public class UserService {
             parameters.put("existingProduct", existingProduct);
 
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Report Generated Successfully");
+            responseMessage.setMessage("Report Generated Successfully and sent it to your Email Address!");
             parameters.put("responseMessage", responseMessage);
             return parameters;
         }
@@ -534,7 +541,7 @@ public class UserService {
 
     public void generateExcelFileReport(List<Product> products){
         for(Product product : products) {
-            String fileName = product.getProductName()+".xlsx";
+            String fileName = product.getProductName() + ".xlsx";
             try (Workbook workbook = new XSSFWorkbook()) {
                 Sheet sheet = workbook.createSheet("Report for Photovoltaic product: " + product.getProductName());
 
@@ -547,36 +554,48 @@ public class UserService {
                 headerRow2.createCell(4).setCellValue("Cloud Cover");
                 headerRow2.createCell(5).setCellValue("Sun Hours");
                 headerRow2.createCell(6).setCellValue("Electricity Produced");
+                if (product.getWeatherInfo() != null) {
+                    int rowIndex = 1; // Start the rowIndex at 2 (assuming you already have header row at index 0 and data row at index 1)
+                    for (PhotovoltaicCell pCell : product.getWeatherInfo()) {
+                        Row dataRow1 = sheet.createRow(rowIndex);
+                        dataRow1.createCell(0).setCellValue(pCell.getWeatherDate());
+                        dataRow1.createCell(1).setCellValue(pCell.getSolarIrradiance());
+                        dataRow1.createCell(2).setCellValue(pCell.getPanelArea());
+                        dataRow1.createCell(3).setCellValue(pCell.getSystemLoss());
+                        dataRow1.createCell(4).setCellValue(pCell.getCloudCover());
+                        dataRow1.createCell(5).setCellValue(pCell.getSunHours());
+                        dataRow1.createCell(6).setCellValue(pCell.getElectricityProduced());
 
-                int rowIndex = 1; // Start the rowIndex at 2 (assuming you already have header row at index 0 and data row at index 1)
-                for(PhotovoltaicCell pCell : product.getWeatherInfo()) {
-                    Row dataRow1 = sheet.createRow(rowIndex);
-                    dataRow1.createCell(0).setCellValue(pCell.getWeatherDate());
-                    dataRow1.createCell(1).setCellValue(pCell.getSolarIrradiance());
-                    dataRow1.createCell(2).setCellValue(pCell.getPanelArea());
-                    dataRow1.createCell(3).setCellValue(pCell.getSystemLoss());
-                    dataRow1.createCell(4).setCellValue(pCell.getCloudCover());
-                    dataRow1.createCell(5).setCellValue(pCell.getSunHours());
-                    dataRow1.createCell(6).setCellValue(pCell.getElectricityProduced());
-
-                    rowIndex++;
+                        rowIndex++;
+                    }
                 }
+                    // Auto-size the columns
+                    sheet.autoSizeColumn(0);
+                    sheet.autoSizeColumn(1);
+                    sheet.autoSizeColumn(2);
+                    sheet.autoSizeColumn(3);
+                    sheet.autoSizeColumn(4);
+                    sheet.autoSizeColumn(5);
+                    sheet.autoSizeColumn(6);
 
-                // Auto-size the columns
-                sheet.autoSizeColumn(0);
-                sheet.autoSizeColumn(1);
-                sheet.autoSizeColumn(2);
-                sheet.autoSizeColumn(3);
-                sheet.autoSizeColumn(4);
-                sheet.autoSizeColumn(5);
-                sheet.autoSizeColumn(6);
-
-                // Save the workbook to a file
-                try (FileOutputStream fileOut = new FileOutputStream(fileName)) {
-                    workbook.write(fileOut);
+                    // Save the workbook to a file
+                    try (FileOutputStream fileOut = new FileOutputStream(fileName)) {
+                        workbook.write(fileOut);
+                    }
+                } catch(IOException e){
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            }
+    }
+
+    public void sendEmailWithAttachment(User userObj, List<Product> products){
+        String recipientEmail = userObj.getEmailId();
+        for(Product product : products) {
+            if(product.getWeatherInfo()!=null) {
+                String subject = "Results of Photovoltaic System Product : " + product.getProductName();
+                String body = "Here is your generated report for the product, Please find an attachment.";
+                String attachmentFilePath = "D:\\Web Engineering\\DWT\\Photovoltaic-System\\" + product.getProductName() + ".xlsx";
+                emailService.sendEmailWithAttachment(recipientEmail, subject, body, attachmentFilePath);
             }
         }
     }
