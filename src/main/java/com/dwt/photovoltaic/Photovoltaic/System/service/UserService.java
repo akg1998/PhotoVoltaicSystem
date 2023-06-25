@@ -641,4 +641,54 @@ public class UserService {
             }
         }
     }
+
+    public ResponseEntity<?> getUpdatedProject(Project projectInfo, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
+            Project project = userObj.getProjects().stream()
+                    .filter(p -> p.getProjectName().equals(projectInfo.getProjectName()))
+                    .findFirst()
+                    .orElse(null);
+            if (project != null) {
+                project.setDescription(projectInfo.getDescription());
+                userRepo.save(userObj);
+                return new ResponseEntity<>(project, HttpStatus.OK);
+            } else {
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        } else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> deleteProject(Project projectInfo, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
+            // To check if project is present or not in db
+            Project project = userObj.getProjects().stream()
+                    .filter(p -> p.getProjectName().equals(projectInfo.getProjectName()))
+                    .findFirst()
+                    .orElse(null);
+            if (project != null) {
+                List<Project> listOfProjects = userObj.getProjects();
+                listOfProjects.removeIf(p -> p.getProjectName().equals(projectInfo.getProjectName()));
+                userRepo.save(userObj);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project deleted successfully");
+                return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+            } else {
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Project name is empty");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        } else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
 }

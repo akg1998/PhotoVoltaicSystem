@@ -15,6 +15,7 @@ public class Project {
 //    @Id
 //    private String id;
     private String projectName;
+    private String description;
     private String status;  // It can have two values read-only and ACTIVE
     private List<Product> products;
 }

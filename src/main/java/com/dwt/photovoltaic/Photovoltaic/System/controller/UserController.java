@@ -83,6 +83,20 @@ public class UserController {
         }
     }
 
+    @PostMapping(value="/updateProject")
+    @CrossOrigin
+    public ResponseEntity<?> updateProject(@RequestBody Project projectInfo, Principal principal){
+        ResponseEntity<?> updatedProject = userService.getUpdatedProject(projectInfo, principal.getName());
+        return new ResponseEntity<>(updatedProject, updatedProject.getStatusCode());
+    }
+
+    @PostMapping(value="/deleteProject")
+    @CrossOrigin
+    public ResponseEntity<?> deleteProject(@RequestBody Project projectInfo, Principal principal){
+        ResponseEntity<?> deletedProject = userService.deleteProject(projectInfo, principal.getName());
+        return new ResponseEntity<>(deletedProject, deletedProject.getStatusCode());
+    }
+
     @GetMapping(value = "/showProjects")
     @CrossOrigin
     public ResponseEntity<?> getProjects(Principal principal){
