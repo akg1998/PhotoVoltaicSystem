@@ -209,7 +209,7 @@ public class UserService {
             User userObj = userRepo.findByUsername(username);
             //runForDailyElectricityProduced();
             if(userObj!=null){
-                List<Project> projects = userRepo.getAllActiveProjects(username);
+                List<Project> projects = userObj.getProjects();
                 if(projects!=null){
                     return new ResponseEntity<>(projects, HttpStatus.OK);
                 }
@@ -426,9 +426,16 @@ public class UserService {
                         productObj.setStatus("READ-ONLY");
                         userRepo.save(userObj);
                     }
-                    ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
-                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
-                    return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                    if(results.size()>0) {
+                        ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
+                        ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                        return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                    }
+                    else{
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("No products are present to generate report or maybe report already generated for all products");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                    }
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();
@@ -453,11 +460,13 @@ public class UserService {
                                 results = calculateElectricityProduced(product, product, 0, null);
                                 userRepo.save(userObj);
                             }
-                            ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
-                            if(responseCode.getStatusCode()==HttpStatus.OK) {
-                                product.setStatus("READ-ONLY");
-                                userRepo.save(userObj);
-                            }
+
+                                ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                                if (responseCode.getStatusCode() == HttpStatus.OK) {
+                                    product.setStatus("READ-ONLY");
+                                    userRepo.save(userObj);
+                                }
+
                         }
                     }
                     generateExcelFileReport(project.getProducts());
@@ -467,9 +476,16 @@ public class UserService {
                         userRepo.save(userObj);
                     }
                     // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
-                    ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
-                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
-                    return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                    if(results.size()>0) {
+                        ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
+                        ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                        return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                    }
+                    else{
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("No products are present to generate report or maybe report already generated for all products");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                    }
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();
@@ -669,7 +685,7 @@ public class UserService {
             if(product.getWeatherInfo()!=null) {
                 String subject = "Results of Photovoltaic System Product : " + product.getProductName();
                 String body = "Here is your generated report for the product, Please find an attachment.";
-                String attachmentFilePath = "D:\\Web Engineering\\DWT\\Photovoltaic-System\\" + product.getProductName() + ".xlsx";
+                String attachmentFilePath = "C:\\Users\\Akshata\\Desktop\\DWT\\dwt-backend\\" + product.getProductName() + ".xlsx";
                 emailService.sendEmailWithAttachment(recipientEmail, subject, body, attachmentFilePath);
             }
         }
@@ -758,7 +774,7 @@ public class UserService {
     public List<DataEntry> getDataSource() {
         List<DataEntry> dataSource = new ArrayList<>();
 
-        try (FileInputStream file = new FileInputStream("finalTestProduct2.xlsx")) {
+        try (FileInputStream file = new FileInputStream("company123.xlsx")) {
             // Load the workbook
             Workbook workbook = new XSSFWorkbook(file);
 
