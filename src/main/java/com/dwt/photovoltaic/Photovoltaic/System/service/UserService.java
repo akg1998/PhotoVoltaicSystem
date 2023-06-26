@@ -385,7 +385,6 @@ public class UserService {
         }
     }
 
-    // TO-DOS Pending:- Once Report generated mark it "read-only"
     public ResponseEntity<?> generateReport(Project projectDetails, String username) {
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
@@ -397,53 +396,72 @@ public class UserService {
                     .findFirst()
                     .orElse(null);
 
-            // ***************************************************************  Check condition here project should not be "read-only"
             // It means user clicked on any one of the product
-            if (projectDetails.getProducts() != null) {
+            if (projectDetails.getProducts() != null && !projectDetails.getStatus().equalsIgnoreCase("READ-ONLY")) {
                 Product product = projectDetails.getProducts().get(0);
-                Product productObj = project.getProducts().stream()
-                        .filter(p -> p.getProductName().equals(product.getProductName()))
-                        .findFirst()
-                        .orElse(null);
-                List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
-                // If someone clicks Generate Report button after (for example) 6-7 calculations.
-                if (productObj.getWeatherInfo() != null) {
-                    numberOfdays = productObj.getWeatherInfo().size();
-                    if(numberOfdays < 30) {
-                        results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo);
+                if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
+                    Product productObj = project.getProducts().stream()
+                            .filter(p -> p.getProductName().equals(product.getProductName()))
+                            .findFirst()
+                            .orElse(null);
+                    List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
+                    // If someone clicks Generate Report button after (for example) 6-7 calculations.
+                    if (productObj.getWeatherInfo() != null) {
+                        numberOfdays = productObj.getWeatherInfo().size();
+                        if (numberOfdays < 30) {
+                            results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo);
+                            userRepo.save(userObj);
+                        }
+                    } else {
+                        results = calculateElectricityProduced(product, productObj, numberOfdays, null);
                         userRepo.save(userObj);
                     }
-                } else {
-                    results = calculateElectricityProduced(product, productObj, numberOfdays, null);
-                    userRepo.save(userObj);
+                    generateExcelFileReport(project.getProducts());
+                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj,project.getProducts());
+                    if(responseStatusEmail.getStatusCode()==HttpStatus.OK){
+                        productObj.setStatus("READ-ONLY");
+                        userRepo.save(userObj);
+                    }
+                    ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
+                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                    return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
                 }
-                generateExcelFileReport(project.getProducts());
-                //sendEmailWithAttachment(userObj,project.getProducts());
-                ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
-                ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
-                return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Report Already Generated, Please Check your Email!");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                }
             }
             // It means user clicked on Project, and it should generate report for all products
             else {
-                // ********************************* Check condition for read-only
-                if(project.getProducts()!=null){
+                if(project.getProducts()!=null && !project.getStatus().equalsIgnoreCase("READ-ONLY")){
                     List<Product> products = project.getProducts();
                     for(Product product: products){
-                        List<PhotovoltaicCell> weatherInfo = product.getWeatherInfo();
-                        if (weatherInfo != null) {
-                            numberOfdays = weatherInfo.size();
-                            if(numberOfdays < 30) {
-                                results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo);
+                        if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
+                            List<PhotovoltaicCell> weatherInfo = product.getWeatherInfo();
+                            if (weatherInfo != null) {
+                                numberOfdays = weatherInfo.size();
+                                if (numberOfdays < 30) {
+                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo);
+                                    userRepo.save(userObj);
+                                }
+                            } else {
+                                results = calculateElectricityProduced(product, product, 0, null);
                                 userRepo.save(userObj);
                             }
-                        } else {
-                            results = calculateElectricityProduced(product, product, 0, null);
-                            userRepo.save(userObj);
+                            ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                            if(responseCode.getStatusCode()==HttpStatus.OK) {
+                                product.setStatus("READ-ONLY");
+                                userRepo.save(userObj);
+                            }
                         }
                     }
                     generateExcelFileReport(project.getProducts());
-                    //sendEmailWithAttachment(userObj,project.getProducts());
-
+                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj,project.getProducts());
+                    if(responseStatusEmail.getStatusCode()==HttpStatus.OK){
+                        project.setStatus("READ-ONLY");
+                        userRepo.save(userObj);
+                    }
                     // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
                     ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                     ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
@@ -451,7 +469,7 @@ public class UserService {
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();
-                    responseMessage.setMessage("No products are present to generate report");
+                    responseMessage.setMessage("No products are present to generate report or maybe report already generated for all products");
                     return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 }
             }
@@ -632,7 +650,7 @@ public class UserService {
             }
     }
 
-    public void sendEmailWithAttachment(User userObj, List<Product> products){
+    public ResponseEntity<?> sendEmailWithAttachment(User userObj, List<Product> products){
         String recipientEmail = userObj.getEmailId();
         for(Product product : products) {
             if(product.getWeatherInfo()!=null) {
@@ -642,6 +660,9 @@ public class UserService {
                 emailService.sendEmailWithAttachment(recipientEmail, subject, body, attachmentFilePath);
             }
         }
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Email Sent Successfully");
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
     }
 
     public ResponseEntity<?> getUpdatedProject(Project projectInfo, String username) {
