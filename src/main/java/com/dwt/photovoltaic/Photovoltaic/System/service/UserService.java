@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -100,15 +101,17 @@ public class UserService {
                 if (project == null || project.isEmpty()) {
                     // No existing data, create a new list and add the new object
                     List<Project> newProjectList = new ArrayList<>();
+                    projectDetails.setStatus("ACTIVE");
                     newProjectList.add(projectDetails);
                     userObj.setProjects(newProjectList);
                     userRepo.save(userObj);
                     return new ResponseEntity<>(projectDetails, HttpStatus.OK);
                 } else {
-                        project.add(projectDetails);
-                        userObj.setProjects(project);
-                        userRepo.save(userObj);
-                        return new ResponseEntity<>(projectDetails, HttpStatus.OK);
+                    projectDetails.setStatus("ACTIVE");
+                    project.add(projectDetails);
+                    userObj.setProjects(project);
+                    userRepo.save(userObj);
+                    return new ResponseEntity<>(projectDetails, HttpStatus.OK);
                 }
             }
             else {
@@ -126,7 +129,7 @@ public class UserService {
     public ResponseEntity<?> saveProductDetails(Project projectObj, String username) {
         User user = userRepo.findByUsername(username);
         if (user != null && user.getStatus().equals("ACTIVE")) {
-            if (projectObj.getProjectName() != null) {
+            if (projectObj.getProjectName() != null && projectObj.getStatus().equalsIgnoreCase("ACTIVE")) {
                 Project project = user.getProjects().stream()
                         .filter(p -> p.getProjectName().equals(projectObj.getProjectName()))
                         .findFirst()
@@ -154,7 +157,7 @@ public class UserService {
                 }
                 else{
                     ResponseMessage responseMessage = new ResponseMessage();
-                    responseMessage.setMessage("Given project is not present in database, it might be deleted!");
+                    responseMessage.setMessage("Given project is not present or maybe READ-ONLY");
                     return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 }
             }
@@ -204,8 +207,9 @@ public class UserService {
     public ResponseEntity<?> fetchAllProjects(String username) {
         if(username!=null){
             User userObj = userRepo.findByUsername(username);
+            //runForDailyElectricityProduced();
             if(userObj!=null){
-                List<Project> projects = userObj.getProjects();
+                List<Project> projects = userRepo.getAllActiveProjects(username);
                 if(projects!=null){
                     return new ResponseEntity<>(projects, HttpStatus.OK);
                 }
@@ -397,7 +401,7 @@ public class UserService {
                     .orElse(null);
 
             // It means user clicked on any one of the product
-            if (projectDetails.getProducts() != null && !projectDetails.getStatus().equalsIgnoreCase("READ-ONLY")) {
+            if (!projectDetails.getProducts().isEmpty() && !projectDetails.getStatus().equalsIgnoreCase("READ-ONLY")) {
                 Product product = projectDetails.getProducts().get(0);
                 if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
                     Product productObj = project.getProducts().stream()
@@ -479,6 +483,15 @@ public class UserService {
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
+
+    //@Scheduled(fixedRate = 10000)
+//    public void runForDailyElectricityProduced() {
+//        List<User> activeUsers = userRepo.showUsersbyStatus("ACTIVE");
+//        for(User user : activeUsers){
+//            List<Project> projects = userRepo.getAllActiveProjects(user.getUsername());
+//            // Implement considering the button click of manual syncup once report generated for that day cron job will not run for that day again.
+//        }
+//    }
 
     public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo) {
         HashMap<String, Object> parameters = new HashMap<>();
