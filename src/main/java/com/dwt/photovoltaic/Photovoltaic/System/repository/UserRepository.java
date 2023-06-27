@@ -16,7 +16,4 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     @Query(value = "{ 'username' : ?0, 'projects': { $elemMatch: { 'projectName': ?1, 'products.productName': ?2 } } }", exists = true)
     boolean existsByProjectNameAndProductName(String username, String projectName, String productName);
-
-    @Query(value= "{ 'username' : ?0, 'projects' : { $elemMatch: { 'status': 'ACTIVE' } } }")
-    List<Project> getAllActiveProjects(String username);
 }

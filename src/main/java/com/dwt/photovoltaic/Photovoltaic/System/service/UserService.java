@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -140,7 +141,7 @@ public class UserService {
                         project.setProducts(new ArrayList<>()); // Initialize the products list
                     }
                         for(Product product : products) {
-                            boolean exists = userRepo.existsByProjectNameAndProductName(username, projectObj.getProjectName(),product.getProductName());
+                            boolean exists = userRepo.existsByProjectNameAndProductName(username,projectObj.getProjectName(),product.getProductName());
                             if(exists != true) {
                                 project.getProducts().add(product);
                                 userRepo.save(user);
@@ -413,11 +414,11 @@ public class UserService {
                     if (productObj.getWeatherInfo() != null) {
                         numberOfdays = productObj.getWeatherInfo().size();
                         if (numberOfdays < 30) {
-                            results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo);
+                            results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo, false);
                             userRepo.save(userObj);
                         }
                     } else {
-                        results = calculateElectricityProduced(product, productObj, numberOfdays, null);
+                        results = calculateElectricityProduced(product, productObj, numberOfdays, null, false);
                         userRepo.save(userObj);
                     }
                     generateExcelFileReport(project.getProducts());
@@ -453,11 +454,11 @@ public class UserService {
                             if (weatherInfo != null) {
                                 numberOfdays = weatherInfo.size();
                                 if (numberOfdays < 30) {
-                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo);
+                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo,false);
                                     userRepo.save(userObj);
                                 }
                             } else {
-                                results = calculateElectricityProduced(product, product, 0, null);
+                                results = calculateElectricityProduced(product, product, 0, null,false);
                                 userRepo.save(userObj);
                             }
 
@@ -500,16 +501,63 @@ public class UserService {
         }
     }
 
+    // CRON JOB
     //@Scheduled(fixedRate = 10000)
-//    public void runForDailyElectricityProduced() {
-//        List<User> activeUsers = userRepo.showUsersbyStatus("ACTIVE");
-//        for(User user : activeUsers){
-//            List<Project> projects = userRepo.getAllActiveProjects(user.getUsername());
-//            // Implement considering the button click of manual syncup once report generated for that day cron job will not run for that day again.
-//        }
-//    }
+    public void runForDailyElectricityProduced() {
+        List<User> activeUsers = userRepo.showUsersbyStatus("ACTIVE");
+        HashMap<String, Object> results = new HashMap<>();
 
-    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo) {
+        for (User activeUser : activeUsers) {
+            if(activeUser.getProjects()!=null) {
+                List<Project> activeProjects = activeUser.getProjects().stream()
+                        .filter(project -> project != null && project.getStatus().equalsIgnoreCase("active"))
+                        .collect(Collectors.toList());
+                for (Project activeProject : activeProjects) {
+                    if (activeProject.getProducts() != null) {
+
+                        List<Product> activeProducts = activeProject.getProducts().stream()
+                                .filter(product -> product != null && (product.getStatus() != null && product.getStatus().equalsIgnoreCase("ACTIVE")))
+                                .collect(Collectors.toList());
+
+                        for (Product activeProduct : activeProducts) {
+                            if(activeProduct.getWeatherInfo()!=null) {
+                                if (activeProduct.getWeatherInfo().size() < 30) {
+                                    results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true);
+                                    ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
+                                    if (response.getStatusCode() == HttpStatus.OK) {
+                                        //userRepo.save(activeUser);
+                                        System.out.println("Cron JOB ran successfully");
+                                    }
+                                    else if(response.getStatusCode()==HttpStatus.ALREADY_REPORTED){
+                                        // This message will get printed for manual syncUp
+                                        System.out.println(response.getBody());
+                                    }
+                                    if (activeProduct.getWeatherInfo().size() == 30) {
+                                        activeProduct.setStatus("READ-ONLY");
+                                        //userRepo.save(activeUser);
+                                    }
+                                }
+                                else{
+                                    System.out.println("Data for 30 days calculated already");
+                                }
+                            }
+                            else{
+                                // This is for first time run when weatherInfo is null
+                                results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true);
+                                ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
+                                if (response.getStatusCode() == HttpStatus.OK) {
+                                    //userRepo.save(activeUser);
+                                    System.out.println("Cron JOB ran successfully");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG) {
         HashMap<String, Object> parameters = new HashMap<>();
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
@@ -529,6 +577,41 @@ public class UserService {
         String currentDate = todayDate.format(formatter); // Today's Date
         LocalDate thirtyDaysBefore = LocalDate.now().minusDays(30);
         String thirtyDaysBeforeDate = thirtyDaysBefore.format(formatter); // 30 days before date
+
+        boolean manualSyncUp = false;
+        if(CRON_FLAG == true){
+            List<PhotovoltaicCell> weatherInfoDetails =  product.getWeatherInfo();
+            if(weatherInfoDetails!=null) {
+                for (PhotovoltaicCell photoCell : product.getWeatherInfo()) {
+                    LocalDate today = LocalDate.now();
+
+                    // Get yesterday's date
+                    LocalDate yesterday = today.minusDays(1);
+                    String yesterdayFormatted = yesterday.format(formatter);
+
+                    if (photoCell.getWeatherDate().equals(yesterdayFormatted)) {
+                        manualSyncUp = true;
+                        break;
+                    }
+                }
+            }
+            if(!manualSyncUp) {
+                LocalDate today = LocalDate.now();
+
+                // Get yesterday's date
+                LocalDate yesterday = today.minusDays(1);
+
+                // Get the day before yesterday's date
+
+                thirtyDaysBeforeDate = yesterday.format(formatter);
+                currentDate = today.format(formatter);
+            }
+            else{
+                ResponseEntity<String> response = ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Manual SyncUp already performed");
+                parameters.put("response",response);
+                return parameters;
+            }
+        }
 
         apiUrl += "lat=" + latitude + "&lon=" + longitude + "&start_date=" + thirtyDaysBeforeDate + "&end_date=" + currentDate + "&key=" + apiKey;
 
@@ -585,6 +668,7 @@ public class UserService {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage("Report Generated Successfully and sent it to your Email Address!");
             parameters.put("responseMessage", responseMessage);
+            parameters.put("response", response);
             return parameters;
         }
         else{
@@ -685,7 +769,7 @@ public class UserService {
             if(product.getWeatherInfo()!=null) {
                 String subject = "Results of Photovoltaic System Product : " + product.getProductName();
                 String body = "Here is your generated report for the product, Please find an attachment.";
-                String attachmentFilePath = "C:\\Users\\Akshata\\Desktop\\DWT\\dwt-backend\\" + product.getProductName() + ".xlsx";
+                String attachmentFilePath = product.getProductName() + ".xlsx";
                 emailService.sendEmailWithAttachment(recipientEmail, subject, body, attachmentFilePath);
             }
         }
@@ -773,8 +857,8 @@ public class UserService {
 
     public List<DataEntry> getDataSource() {
         List<DataEntry> dataSource = new ArrayList<>();
-
-        try (FileInputStream file = new FileInputStream("company123.xlsx")) {
+        // Remove hard-coded value from here
+        try (FileInputStream file = new FileInputStream("finalTestProduct1.xlsx")) {
             // Load the workbook
             Workbook workbook = new XSSFWorkbook(file);
 
