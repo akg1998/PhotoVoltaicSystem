@@ -94,79 +94,127 @@ public class UserService {
     }
 
     public ResponseEntity<?> saveProjectDetails(String username, Project projectDetails) {
-        if (username != null) {
             User userObj = userRepo.findByUsername(username);
-            List<Project> project = userObj.getProjects();
-           // projectDetails.setId(UUID.randomUUID().toString());
             if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
-                if (project == null || project.isEmpty()) {
-                    // No existing data, create a new list and add the new object
-                    List<Project> newProjectList = new ArrayList<>();
-                    projectDetails.setStatus("ACTIVE");
-                    newProjectList.add(projectDetails);
-                    userObj.setProjects(newProjectList);
+                List<Project> project = userObj.getProjects();
+                if(userObj.getUserType().equalsIgnoreCase("unlimited")) {
+                    if (project == null || project.isEmpty()) {
+                        // No existing data, create a new list and add the new object
+                        List<Project> newProjectList = new ArrayList<>();
+                        projectDetails.setStatus("ACTIVE");
+                        newProjectList.add(projectDetails);
+                        userObj.setProjects(newProjectList);
+                    } else {
+                        projectDetails.setStatus("ACTIVE");
+                        project.add(projectDetails);
+                        userObj.setProjects(project);
+                    }
                     userRepo.save(userObj);
                     return new ResponseEntity<>(projectDetails, HttpStatus.OK);
-                } else {
-                    projectDetails.setStatus("ACTIVE");
-                    project.add(projectDetails);
-                    userObj.setProjects(project);
+                }
+                else if (userObj.getUserType().equalsIgnoreCase("free")) {
+                    if (project == null || project.isEmpty()) {
+                        // No existing data, create a new list and add the new object
+                        List<Project> newProjectList = new ArrayList<>();
+                        projectDetails.setStatus("ACTIVE");
+                        newProjectList.add(projectDetails);
+                        userObj.setProjects(newProjectList);
+                    } else if(project.size() == 1 && project.size()<1){
+                        projectDetails.setStatus("ACTIVE");
+                        project.add(projectDetails);
+                        userObj.setProjects(project);
+                    }
+                    else{
+                        ResponseMessage responseMessage = new ResponseMessage();
+                        responseMessage.setMessage("You can't create more than 1 project because you are a free user!");
+                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                    }
                     userRepo.save(userObj);
                     return new ResponseEntity<>(projectDetails, HttpStatus.OK);
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("User type is not mentioned at the time of registration!");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 }
             }
             else {
                 ResponseMessage responseMessage = new ResponseMessage();
-                responseMessage.setMessage("User might be deleted or not valid user to perform this action");
+                responseMessage.setMessage("You are not valid user to perform this action!");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
-        }
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("You are not valid user to perform this action!");
-        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
     }
 
     // Two ways -  first scan whole project using projectId or second one is scan by userId and then ProjectId
     public ResponseEntity<?> saveProductDetails(Project projectObj, String username) {
         User user = userRepo.findByUsername(username);
         if (user != null && user.getStatus().equals("ACTIVE")) {
-            if (projectObj.getProjectName() != null && projectObj.getStatus().equalsIgnoreCase("ACTIVE")) {
-                Project project = user.getProjects().stream()
-                        .filter(p -> p.getProjectName().equals(projectObj.getProjectName()))
-                        .findFirst()
-                        .orElse(null);
-                if (project != null) {
-                        List<Product> products = projectObj.getProducts();
-                    if (project.getProducts() == null) {
-                        project.setProducts(new ArrayList<>()); // Initialize the products list
-                    }
-                        for(Product product : products) {
-                            boolean exists = userRepo.existsByProjectNameAndProductName(username,projectObj.getProjectName(),product.getProductName());
-                            if(exists != true) {
-                                project.getProducts().add(product);
-                                userRepo.save(user);
-                            }
-                        }
-                    return new ResponseEntity<>(products, HttpStatus.OK);
-                    }
-                    else {
+            List<Project> listOfProjects = user.getProjects();
+            if (user.getUserType().equalsIgnoreCase("free") && listOfProjects.size() == 1) {
+                Project singleProject = listOfProjects.get(0);
+                if(singleProject.getProducts()!=null) {
+                    if (singleProject.getProducts().size() < 3) {
+                        ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
+                        return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
+                    } else {
                         ResponseMessage responseMessage = new ResponseMessage();
-                        responseMessage.setMessage("No products given in request, please add some products!");
+                        responseMessage.setMessage("You can't create more than 3 products because you are a free user!");
                         return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                     }
-
                 }
                 else{
-                    ResponseMessage responseMessage = new ResponseMessage();
-                    responseMessage.setMessage("Given project is not present or maybe READ-ONLY");
-                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                    ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
+                    return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
                 }
             }
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("You are not valid user to perform this action!");
-        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            else if(user.getUserType().equalsIgnoreCase("unlimited")){
+                ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
+                return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("User type is not mentioned at the time of registration!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
+    public ResponseEntity<?> saveProductMethod(User user, Project projectObj){
+        if (projectObj.getProjectName() != null && projectObj.getStatus().equalsIgnoreCase("ACTIVE")) {
+            Project project = user.getProjects().stream()
+                    .filter(p -> p.getProjectName().equals(projectObj.getProjectName()))
+                    .findFirst()
+                    .orElse(null);
+            if (project != null) {
+                List<Product> products = projectObj.getProducts();
+                if (project.getProducts() == null) {
+                    project.setProducts(new ArrayList<>()); // Initialize the products list
+                }
+                for (Product product : products) {
+                    boolean exists = userRepo.existsByProjectNameAndProductName(user.getUsername(), projectObj.getProjectName(), product.getProductName());
+                    if (exists != true) {
+                        project.getProducts().add(product);
+                        userRepo.save(user);
+                    }
+                }
+                return new ResponseEntity<>(products, HttpStatus.OK);
+            } else {
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("No products given in request, please add some products!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+
+        } else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Given project is not present or maybe READ-ONLY");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
     public ResponseEntity<?> updateAccountForUser(User user, String username) {
         User userObj = userRepo.findByUsername(username);
         if(userObj!=null && userObj.getUsername().equals(user.getUsername()) && userObj.getStatus().equals("ACTIVE")){
