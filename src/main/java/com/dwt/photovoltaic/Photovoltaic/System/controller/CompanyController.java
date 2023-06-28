@@ -26,7 +26,7 @@ public class CompanyController {
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Invalid Data! Contact administrator");
+            responseMessage.setMessage(String.valueOf(e));
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
@@ -41,7 +41,7 @@ public class CompanyController {
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Invalid Data! Contact administrator");
+            responseMessage.setMessage(String.valueOf(e));
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }

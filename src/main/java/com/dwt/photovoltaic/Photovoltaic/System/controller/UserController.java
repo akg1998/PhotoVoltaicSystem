@@ -29,8 +29,15 @@ public class UserController {
     @GetMapping(value="/users")
     @CrossOrigin
     public ResponseEntity<?> getUsers(){
-        List<User> listOfUsers = userService.findAllUsers();
-        return new ResponseEntity<>(listOfUsers, HttpStatus.OK);
+        try {
+            List<User> listOfUsers = userService.findAllUsers();
+            return new ResponseEntity<>(listOfUsers, HttpStatus.OK);
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value= "/user")
@@ -42,7 +49,7 @@ public class UserController {
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Invalid Data! Contact administrator");
+            responseMessage.setMessage(String.valueOf(e));
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
@@ -50,22 +57,43 @@ public class UserController {
     @PatchMapping(value="/updateUser")
     @CrossOrigin
     public ResponseEntity<?> updateUserAccount(@RequestBody User user, Principal principal){
-        ResponseEntity<?> userObj = userService.updateAccountForUser(user, principal.getName());
-        return new ResponseEntity<>(userObj, userObj.getStatusCode());
+        try {
+            ResponseEntity<?> userObj = userService.updateAccountForUser(user, principal.getName());
+            return new ResponseEntity<>(userObj, userObj.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping(value="/deleteUser")
     @CrossOrigin
     public ResponseEntity<?> deleteUserAccount(Principal principal){
-        ResponseEntity<?> userObj = userService.deleteAccountUser(principal.getName());
-        return new ResponseEntity<>(userObj, userObj.getStatusCode());
+        try {
+            ResponseEntity<?> userObj = userService.deleteAccountUser(principal.getName());
+            return new ResponseEntity<>(userObj, userObj.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value= "/getDeletedAccounts")
     @CrossOrigin
     public ResponseEntity<?> fetchDeletedAccounts(){
-        List<User> userObj = userService.getAllDeletedUsers();
-        return ResponseEntity.ok(userObj);
+        try {
+            List<User> userObj = userService.getAllDeletedUsers();
+            return ResponseEntity.ok(userObj);
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     // Save project and product in single json
@@ -78,7 +106,7 @@ public class UserController {
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("Invalid Data! Contact administrator");
+            responseMessage.setMessage(String.valueOf(e));
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
@@ -86,22 +114,43 @@ public class UserController {
     @PostMapping(value="/updateProject")
     @CrossOrigin
     public ResponseEntity<?> updateProject(@RequestBody Project projectInfo, Principal principal){
-        ResponseEntity<?> updatedProject = userService.getUpdatedProject(projectInfo, principal.getName());
-        return new ResponseEntity<>(updatedProject, updatedProject.getStatusCode());
+        try {
+            ResponseEntity<?> updatedProject = userService.getUpdatedProject(projectInfo, principal.getName());
+            return new ResponseEntity<>(updatedProject, updatedProject.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value="/deleteProject")
     @CrossOrigin
     public ResponseEntity<?> deleteProject(@RequestBody Project projectInfo, Principal principal){
-        ResponseEntity<?> deletedProject = userService.deleteProject(projectInfo, principal.getName());
-        return new ResponseEntity<>(deletedProject, deletedProject.getStatusCode());
+        try {
+            ResponseEntity<?> deletedProject = userService.deleteProject(projectInfo, principal.getName());
+            return new ResponseEntity<>(deletedProject, deletedProject.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value = "/showProjects")
     @CrossOrigin
     public ResponseEntity<?> getProjects(Principal principal){
-        ResponseEntity<?> projects = userService.fetchAllProjects(principal.getName());
-        return new ResponseEntity<>(projects, projects.getStatusCode());
+        try {
+            ResponseEntity<?> projects = userService.fetchAllProjects(principal.getName());
+            return new ResponseEntity<>(projects, projects.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value="/saveProduct")
@@ -121,49 +170,98 @@ public class UserController {
     @PatchMapping(value="/updateProduct")
     @CrossOrigin
     public ResponseEntity<?> updateProduct(@RequestBody Project updatedProduct, Principal principal){
-        ResponseEntity<?> project = userService.updateProduct(updatedProduct, principal.getName());
-        return new ResponseEntity<>(project.getBody(),project.getStatusCode());
+        try {
+            ResponseEntity<?> project = userService.updateProduct(updatedProduct, principal.getName());
+            return new ResponseEntity<>(project.getBody(), project.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value = "/deleteProduct")
     @CrossOrigin
     public ResponseEntity<?> deleteProduct(@RequestBody Project productDetails, Principal principal){
-        ResponseEntity<?> deletedProduct = userService.deleteProduct(productDetails,principal.getName());
-        return new ResponseEntity<>(deletedProduct, deletedProduct.getStatusCode());
+        try {
+            ResponseEntity<?> deletedProduct = userService.deleteProduct(productDetails, principal.getName());
+            return new ResponseEntity<>(deletedProduct, deletedProduct.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value="/showCompanyProducts")
     @CrossOrigin
     public ResponseEntity<?> showAllCompanyProducts(Principal principal){
-        ResponseEntity<?> allProducts = userService.getAllProducts(principal.getName());
-        return new ResponseEntity<>(allProducts, allProducts.getStatusCode());
+        try {
+            ResponseEntity<?> allProducts = userService.getAllProducts(principal.getName());
+            return new ResponseEntity<>(allProducts, allProducts.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value="/showProjects/{projectName}")
     @CrossOrigin
     public ResponseEntity<?> showAllProducts(@PathVariable String projectName, Principal principal){
-        ResponseEntity<?> projects = userService.getProjectsByProjectName(projectName, principal.getName());
-        return new ResponseEntity<>(projects.getBody(), projects.getStatusCode());
+        try {
+            ResponseEntity<?> projects = userService.getProjectsByProjectName(projectName, principal.getName());
+            return new ResponseEntity<>(projects.getBody(), projects.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value="/generateReport")
     @CrossOrigin
     public ResponseEntity<?> generateReport(@RequestBody Project projectDetails, Principal principal){
-        ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
-        return new ResponseEntity<>(result, result.getStatusCode());
+        try {
+            ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
+            return new ResponseEntity<>(result, result.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value="/generateGraph")
     @CrossOrigin
     public ResponseEntity<?> generateGraph(Principal principal){
-        ResponseEntity<?> graphData = userService.generateGraphData(principal.getName());
-        return new ResponseEntity<>(graphData.getBody(), graphData.getStatusCode());
+        try {
+            ResponseEntity<?> graphData = userService.generateGraphData(principal.getName());
+            return new ResponseEntity<>(graphData.getBody(), graphData.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value="/projects/{typeOfProject}")
     @CrossOrigin
     public ResponseEntity<?> showTypeOfProject(@PathVariable String typeOfProject, Principal principal){
-        ResponseEntity<?> listOfProjects = userService.showActiveOrOldProjects(typeOfProject, principal.getName());
-        return new ResponseEntity<>(listOfProjects.getBody(), listOfProjects.getStatusCode());
+        try {
+            ResponseEntity<?> listOfProjects = userService.showActiveOrOldProjects(typeOfProject, principal.getName());
+            return new ResponseEntity<>(listOfProjects.getBody(), listOfProjects.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
     }
 }
