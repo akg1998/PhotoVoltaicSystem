@@ -159,4 +159,11 @@ public class UserController {
         ResponseEntity<?> graphData = userService.generateGraphData(principal.getName());
         return new ResponseEntity<>(graphData.getBody(), graphData.getStatusCode());
     }
+
+    @GetMapping(value="/projects/{typeOfProject}")
+    @CrossOrigin
+    public ResponseEntity<?> showTypeOfProject(@PathVariable String typeOfProject, Principal principal){
+        ResponseEntity<?> listOfProjects = userService.showActiveOrOldProjects(typeOfProject, principal.getName());
+        return new ResponseEntity<>(listOfProjects.getBody(), listOfProjects.getStatusCode());
+    }
 }

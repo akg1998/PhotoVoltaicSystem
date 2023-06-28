@@ -894,4 +894,25 @@ public class UserService {
         return dataSource;
     }
 
+    public ResponseEntity<?> showActiveOrOldProjects(String type, String username) {
+        User userObj = userRepo.findByUsername(username);
+        if(userObj!=null){
+            List<Project> listOfProjects = userObj.getProjects().stream()
+                    .filter(project -> project != null && project.getStatus().equalsIgnoreCase(type))
+                    .collect(Collectors.toList());
+            if(listOfProjects!=null){
+                return new ResponseEntity<>(listOfProjects, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("No "+type+" projects are present!");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Not valid User!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
 }
