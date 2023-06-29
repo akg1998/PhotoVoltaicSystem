@@ -102,7 +102,7 @@ public class AuthApiController {
         } catch (BadCredentialsException ex) {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage("Username or Password is incorrect");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
         }
     }
 

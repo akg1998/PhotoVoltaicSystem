@@ -97,7 +97,7 @@ public class UserService {
             User userObj = userRepo.findByUsername(username);
             if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
                 List<Project> project = userObj.getProjects();
-                if(userObj.getUserType().equalsIgnoreCase("unlimited")) {
+                if(userObj.getTypesOfUsers().equalsIgnoreCase("unlimited")) {
                     if (project == null || project.isEmpty()) {
                         // No existing data, create a new list and add the new object
                         List<Project> newProjectList = new ArrayList<>();
@@ -112,7 +112,7 @@ public class UserService {
                     userRepo.save(userObj);
                     return new ResponseEntity<>(projectDetails, HttpStatus.OK);
                 }
-                else if (userObj.getUserType().equalsIgnoreCase("free")) {
+                else if (userObj.getTypesOfUsers().equalsIgnoreCase("free")) {
                     if (project == null || project.isEmpty()) {
                         // No existing data, create a new list and add the new object
                         List<Project> newProjectList = new ArrayList<>();
@@ -150,7 +150,7 @@ public class UserService {
         User user = userRepo.findByUsername(username);
         if (user != null && user.getStatus().equals("ACTIVE")) {
             List<Project> listOfProjects = user.getProjects();
-            if (user.getUserType().equalsIgnoreCase("free") && listOfProjects.size() == 1) {
+            if (user.getTypesOfUsers().equalsIgnoreCase("free") && listOfProjects.size() == 1) {
                 Project singleProject = listOfProjects.get(0);
                 if(singleProject.getProducts()!=null) {
                     if (singleProject.getProducts().size() < 3) {
@@ -167,7 +167,7 @@ public class UserService {
                     return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
                 }
             }
-            else if(user.getUserType().equalsIgnoreCase("unlimited")){
+            else if(user.getTypesOfUsers().equalsIgnoreCase("unlimited")){
                 ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
                 return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
             }

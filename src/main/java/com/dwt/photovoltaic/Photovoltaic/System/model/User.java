@@ -24,6 +24,7 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private String contactNo;
+    private String typesOfUsers; // Free or unlimited users
     private String userType;
     private List<Project> projects;
     private String status; // status is used in soft deletion process, active means not deleted user, deleted means user is deleted
