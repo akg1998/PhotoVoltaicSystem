@@ -103,7 +103,7 @@ public class UserController {
     public ResponseEntity<?> saveProjectForUser(@RequestBody Project projectDetails, Principal principal){
         try {
             ResponseEntity<?> project = userService.saveProjectDetails(principal.getName(), projectDetails);
-            return ResponseEntity.ok(project.getBody());
+            return new ResponseEntity<>(project.getBody(), project.getStatusCode());
         }
         catch(Exception e){
             ResponseMessage responseMessage = new ResponseMessage();
