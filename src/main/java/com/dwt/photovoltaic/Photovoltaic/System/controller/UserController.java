@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -225,7 +226,7 @@ public class UserController {
 
     @PostMapping(value="/generateReport")
     @CrossOrigin
-    public ResponseEntity<?> generateReport(@RequestBody Project projectDetails, Principal principal){
+    public ResponseEntity<?> generateReport(@RequestBody Map<String, Object> projectDetails, Principal principal){
         try {
             ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
             return new ResponseEntity<>(result, result.getStatusCode());

@@ -3,6 +3,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -25,10 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -438,10 +435,16 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateReport(Project projectDetails, String username) {
+    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username) {
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
         int numberOfdays = 0;
+        // Process Object projectDetails
+        ObjectMapper objectMapper = new ObjectMapper();
+        Project projectDetails = objectMapper.convertValue(projectObj.get("projects"), Project.class) ;
+        Map<String, Object> reportRange = (Map<String, Object>) projectObj.get("reportRange");
+        List<String> fromToDates = objectMapper.convertValue(reportRange.get("dates"), List.class);
+
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
 
             Project project = userObj.getProjects().stream()
@@ -452,41 +455,52 @@ public class UserService {
             // It means user clicked on any one of the product
             if (!projectDetails.getProducts().isEmpty() && !projectDetails.getStatus().equalsIgnoreCase("READ-ONLY")) {
                 Product product = projectDetails.getProducts().get(0);
-                if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
+                if (!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
                     Product productObj = project.getProducts().stream()
                             .filter(p -> p.getProductName().equals(product.getProductName()))
                             .findFirst()
                             .orElse(null);
                     List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
-                    // If someone clicks Generate Report button after (for example) 6-7 calculations.
-                    if (productObj.getWeatherInfo() != null) {
-                        numberOfdays = productObj.getWeatherInfo().size();
-                        if (numberOfdays < 30) {
-                            results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo, false);
+
+                    // Custom Report Date Range implementation
+                    if (fromToDates.size() == 2){
+                        if(productObj.getWeatherInfo()!=null) {
+                            productObj.setWeatherInfo(new ArrayList<>());
+                        }
+                            String fromDate = fromToDates.get(0);
+                            String toDate = fromToDates.get(1);
+                            results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate);
+                            userRepo.save(userObj);
+                    }
+                    else {
+                        // If someone clicks Generate Report button after (for example) 6-7 calculations.
+                        if (productObj.getWeatherInfo() != null) {
+                            numberOfdays = productObj.getWeatherInfo().size();
+                            if (numberOfdays < 30) {
+                                results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo, false, null, null);
+                                userRepo.save(userObj);
+                            }
+                        } else {
+                            results = calculateElectricityProduced(product, productObj, numberOfdays, null, false, null, null);
                             userRepo.save(userObj);
                         }
-                    } else {
-                        results = calculateElectricityProduced(product, productObj, numberOfdays, null, false);
-                        userRepo.save(userObj);
                     }
-                    generateExcelFileReport(project.getProducts());
-                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj,project.getProducts());
-                    if(responseStatusEmail.getStatusCode()==HttpStatus.OK){
+                    generateExcelFileReport(projectDetails.getProducts());
+                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj, projectDetails.getProducts());
+                    if (responseStatusEmail.getStatusCode() == HttpStatus.OK) {
                         productObj.setStatus("READ-ONLY");
                         userRepo.save(userObj);
                     }
-                    if(results.size()>0) {
+                    if (results.size() > 0) {
                         ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                         ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                         return new ResponseEntity<>(responseMessage, responseCode.getStatusCode());
-                    }
-                    else{
+                    } else {
                         ResponseMessage responseMessage = new ResponseMessage();
                         responseMessage.setMessage("No products are present to generate report or maybe report already generated for all products");
                         return new ResponseEntity<>(responseMessage, HttpStatus.OK);
                     }
-                }
-                else{
+                } else {
                     ResponseMessage responseMessage = new ResponseMessage();
                     responseMessage.setMessage("Report Already Generated, Please Check your Email!");
                     return new ResponseEntity<>(responseMessage, HttpStatus.OK);
@@ -502,11 +516,11 @@ public class UserService {
                             if (weatherInfo != null) {
                                 numberOfdays = weatherInfo.size();
                                 if (numberOfdays < 30) {
-                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo,false);
+                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo,false, null,null);
                                     userRepo.save(userObj);
                                 }
                             } else {
-                                results = calculateElectricityProduced(product, product, 0, null,false);
+                                results = calculateElectricityProduced(product, product, 0, null,false,null,null);
                                 userRepo.save(userObj);
                             }
 
@@ -570,7 +584,7 @@ public class UserService {
                         for (Product activeProduct : activeProducts) {
                             if(activeProduct.getWeatherInfo()!=null) {
                                 if (activeProduct.getWeatherInfo().size() < 30) {
-                                    results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true);
+                                    results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true, null,null);
                                     ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                     if (response.getStatusCode() == HttpStatus.OK) {
                                         //userRepo.save(activeUser);
@@ -591,7 +605,7 @@ public class UserService {
                             }
                             else{
                                 // This is for first time run when weatherInfo is null
-                                results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true);
+                                results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true,null,null);
                                 ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                 if (response.getStatusCode() == HttpStatus.OK) {
                                     //userRepo.save(activeUser);
@@ -605,7 +619,7 @@ public class UserService {
         }
     }
 
-    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG) {
+    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG, String fromDate, String toDate) {
         HashMap<String, Object> parameters = new HashMap<>();
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
@@ -617,15 +631,26 @@ public class UserService {
 
         BigDecimal latitude = product.getLatitude();
         BigDecimal longitude = product.getLongitude();
-        LocalDate todayDate = LocalDate.now().minusDays(numberOfDaysLapsed);
-        if(weatherInfo!=null){
-            todayDate = LocalDate.parse(weatherInfo.get(0).getWeatherDate());
-        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String currentDate = todayDate.format(formatter); // Today's Date
-        LocalDate thirtyDaysBefore = LocalDate.now().minusDays(30);
-        String thirtyDaysBeforeDate = thirtyDaysBefore.format(formatter); // 30 days before date
-
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String to = "";
+        String from = "";
+        if(fromDate!=null && toDate!=null){
+            // Parse the input strings to LocalDateTime objects
+            LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, inputFormatter);
+            LocalDateTime toDateTime = LocalDateTime.parse(toDate, inputFormatter);
+            to = toDateTime.format(formatter); // Today's Date
+            from = fromDateTime.format(formatter); // 30 days before date
+        }
+        else {
+            LocalDate todayDate = LocalDate.now().minusDays(numberOfDaysLapsed);
+            if (weatherInfo != null) {
+                todayDate = LocalDate.parse(weatherInfo.get(0).getWeatherDate());
+            }
+            to = todayDate.format(formatter); // Today's Date
+            LocalDate thirtyDaysBefore = LocalDate.now().minusDays(30);
+            from = thirtyDaysBefore.format(formatter); // 30 days before date
+        }
         boolean manualSyncUp = false;
         if(CRON_FLAG == true){
             List<PhotovoltaicCell> weatherInfoDetails =  product.getWeatherInfo();
@@ -651,8 +676,8 @@ public class UserService {
 
                 // Get the day before yesterday's date
 
-                thirtyDaysBeforeDate = yesterday.format(formatter);
-                currentDate = today.format(formatter);
+                from = yesterday.format(formatter);
+                to = today.format(formatter);
             }
             else{
                 ResponseEntity<String> response = ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Manual SyncUp already performed");
@@ -661,7 +686,7 @@ public class UserService {
             }
         }
 
-        apiUrl += "lat=" + latitude + "&lon=" + longitude + "&start_date=" + thirtyDaysBeforeDate + "&end_date=" + currentDate + "&key=" + apiKey;
+        apiUrl += "lat=" + latitude + "&lon=" + longitude + "&start_date=" + from + "&end_date=" + to + "&key=" + apiKey;
 
         ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, null, String.class);
         parameters.put("response", response);
