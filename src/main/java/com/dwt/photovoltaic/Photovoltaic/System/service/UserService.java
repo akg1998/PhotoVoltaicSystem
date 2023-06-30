@@ -448,7 +448,6 @@ public class UserService {
         Project projectDetails = objectMapper.readValue(projectsJson, Project.class);
 
         Map<String, Object> reportRange = (Map<String, Object>) projectObj.get("reportRange");
-        List<String> fromToDates = objectMapper.convertValue(reportRange.get("dates"), List.class);
 
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
 
@@ -469,17 +468,19 @@ public class UserService {
                             .orElse(null);
                     List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
 
-                    // Custom Report Date Range implementation
-                    if (fromToDates.size() == 2){
-                        if(productObj.getWeatherInfo()!=null) {
-                            productObj.setWeatherInfo(new ArrayList<>());
-                        }
+                    if(reportRange!=null) {
+                        List<String> fromToDates = objectMapper.convertValue(reportRange.get("dates"), List.class);
+                        // Custom Report Date Range implementation
+                        if (fromToDates.size() == 2) {
+                            if (productObj.getWeatherInfo() != null) {
+                                productObj.setWeatherInfo(new ArrayList<>());
+                            }
                             String fromDate = fromToDates.get(0);
                             String toDate = fromToDates.get(1);
                             results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate);
                             userRepo.save(userObj);
-                    }
-                    else {
+                        }
+                    }else {
                         // If someone clicks Generate Report button after (for example) 6-7 calculations.
                         if (productObj.getWeatherInfo() != null) {
                             numberOfdays = productObj.getWeatherInfo().size();
