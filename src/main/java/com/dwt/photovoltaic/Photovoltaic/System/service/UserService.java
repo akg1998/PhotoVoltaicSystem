@@ -447,7 +447,8 @@ public class UserService {
         // Deserialize the JSON string to a Project object
         Project projectDetails = objectMapper.readValue(projectsJson, Project.class);
 
-        Map<String, Object> reportRange = (Map<String, Object>) projectObj.get("reportRange");
+        // Retrieve the string array from the map
+        List<String> datesArray = (List<String>) projectObj.get("date");
 
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
 
@@ -468,15 +469,14 @@ public class UserService {
                             .orElse(null);
                     List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
 
-                    if(reportRange!=null) {
-                        List<String> fromToDates = objectMapper.convertValue(reportRange.get("dates"), List.class);
+                    if(datesArray!=null) {
                         // Custom Report Date Range implementation
-                        if (fromToDates.size() == 2) {
+                        if (datesArray.size() == 2) {
                             if (productObj.getWeatherInfo() != null) {
                                 productObj.setWeatherInfo(new ArrayList<>());
                             }
-                            String fromDate = fromToDates.get(0);
-                            String toDate = fromToDates.get(1);
+                            String fromDate = datesArray.get(0);
+                            String toDate = datesArray.get(1);
                             results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate);
                             userRepo.save(userObj);
                         }
@@ -634,7 +634,7 @@ public class UserService {
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
         String apiUrl = "https://api.weatherbit.io/v2.0/history/daily?";
-        String apiKey = "06a0af5f61ec416fbac8aeaeec4d7998";
+        String apiKey = "f9d1df33a4be4c0e96365efac877ea22";
 
         double panelArea = new BigDecimal(String.valueOf(product.getArea())).doubleValue();
         double systemLoss = new BigDecimal(String.valueOf(product.getSystemLoss())).doubleValue();
@@ -703,7 +703,6 @@ public class UserService {
 
         if (response.getStatusCode().is2xxSuccessful()) {
             String responseBody = response.getBody();
-            System.out.println(responseBody);
             JSONObject jsonObject = new JSONObject(responseBody);
             JSONArray jsonArray = jsonObject.getJSONArray("data");
             for (int i = 0; i < jsonArray.length(); i++) {
