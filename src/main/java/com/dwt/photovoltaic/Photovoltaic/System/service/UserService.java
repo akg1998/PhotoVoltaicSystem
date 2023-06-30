@@ -436,7 +436,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username) throws JsonProcessingException {
+    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username, boolean manualSyncUp) throws JsonProcessingException {
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
         int numberOfdays = 0;
@@ -477,7 +477,7 @@ public class UserService {
                             }
                             String fromDate = datesArray.get(0);
                             String toDate = datesArray.get(1);
-                            results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate);
+                            results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate, false);
                             userRepo.save(userObj);
                         }
                     }else {
@@ -485,11 +485,11 @@ public class UserService {
                         if (productObj.getWeatherInfo() != null) {
                             numberOfdays = productObj.getWeatherInfo().size();
                             if (numberOfdays < 30) {
-                                results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo, false, null, null);
+                                results = calculateElectricityProduced(product, productObj, numberOfdays, weatherInfo, false, null, null,false);
                                 userRepo.save(userObj);
                             }
                         } else {
-                            results = calculateElectricityProduced(product, productObj, numberOfdays, null, false, null, null);
+                            results = calculateElectricityProduced(product, productObj, numberOfdays, null, false, null, null,false);
                             userRepo.save(userObj);
                         }
                     }
@@ -525,15 +525,46 @@ public class UserService {
                             List<PhotovoltaicCell> weatherInfo = product.getWeatherInfo();
                             if (weatherInfo != null) {
                                 numberOfdays = weatherInfo.size();
-                                if (numberOfdays < 30) {
-                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo,false, null,null);
+                                if(manualSyncUp){
+                                    results = calculateElectricityProduced(product, product, 0, weatherInfo,false,null,null, true);
+                                    userRepo.save(userObj);
+                                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                                    if (responseCode.getStatusCode() == HttpStatus.OK) {
+                                        ResponseMessage responseMessage = new ResponseMessage();
+                                        responseMessage.setMessage("Manual Sync up performed successfully!");
+                                        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                                    }
+                                    else{
+                                        ResponseMessage responseMessage = new ResponseMessage();
+                                        responseMessage.setMessage("Manual Sync up already performed!");
+                                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                                    }
+                                }
+                                else if (numberOfdays < 30) {
+                                    results = calculateElectricityProduced(product, product, numberOfdays, weatherInfo,false, null,null,false);
                                     userRepo.save(userObj);
                                 }
                             } else {
-                                results = calculateElectricityProduced(product, product, 0, null,false,null,null);
-                                userRepo.save(userObj);
+                                if(manualSyncUp){
+                                    results = calculateElectricityProduced(product, product, 0, null,false,null,null, true);
+                                    userRepo.save(userObj);
+                                    ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
+                                    if (responseCode.getStatusCode() == HttpStatus.OK) {
+                                        ResponseMessage responseMessage = new ResponseMessage();
+                                        responseMessage.setMessage("Manual Sync up performed successfully!");
+                                        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+                                    }
+                                    else{
+                                        ResponseMessage responseMessage = new ResponseMessage();
+                                        responseMessage.setMessage("Manual Sync up already performed!");
+                                        return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+                                    }
+                                }
+                                else {
+                                    results = calculateElectricityProduced(product, product, 0, null, false, null, null,false);
+                                    userRepo.save(userObj);
+                                }
                             }
-
                                 ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
                                 if (responseCode.getStatusCode() == HttpStatus.OK) {
                                     product.setStatus("READ-ONLY");
@@ -548,7 +579,6 @@ public class UserService {
                         project.setStatus("READ-ONLY");
                         userRepo.save(userObj);
                     }
-                    // According to read-only message pleas change response message here else it will throw 500-Internal Server Error
                     if(results.size()>0) {
                         ResponseMessage responseMessage = (ResponseMessage) results.get("responseMessage");
                         ResponseEntity<?> responseCode = (ResponseEntity<?>) results.get("response");
@@ -594,7 +624,7 @@ public class UserService {
                         for (Product activeProduct : activeProducts) {
                             if(activeProduct.getWeatherInfo()!=null) {
                                 if (activeProduct.getWeatherInfo().size() < 30) {
-                                    results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true, null,null);
+                                    results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true, null,null, false);
                                     ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                     if (response.getStatusCode() == HttpStatus.OK) {
                                         //userRepo.save(activeUser);
@@ -615,7 +645,7 @@ public class UserService {
                             }
                             else{
                                 // This is for first time run when weatherInfo is null
-                                results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true,null,null);
+                                results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true,null,null, false);
                                 ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                 if (response.getStatusCode() == HttpStatus.OK) {
                                     //userRepo.save(activeUser);
@@ -629,7 +659,7 @@ public class UserService {
         }
     }
 
-    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG, String fromDate, String toDate) {
+    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG, String fromDate, String toDate, boolean manualSyncUp) {
         HashMap<String, Object> parameters = new HashMap<>();
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
@@ -649,8 +679,8 @@ public class UserService {
             // Parse the input strings to LocalDateTime objects
             LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, inputFormatter);
             LocalDateTime toDateTime = LocalDateTime.parse(toDate, inputFormatter);
-            to = toDateTime.format(formatter); // Today's Date
-            from = fromDateTime.format(formatter); // 30 days before date
+            to = toDateTime.format(formatter);
+            from = fromDateTime.format(formatter);
         }
         else {
             LocalDate todayDate = LocalDate.now().minusDays(numberOfDaysLapsed);
@@ -661,8 +691,8 @@ public class UserService {
             LocalDate thirtyDaysBefore = LocalDate.now().minusDays(30);
             from = thirtyDaysBefore.format(formatter); // 30 days before date
         }
-        boolean manualSyncUp = false;
-        if(CRON_FLAG == true){
+        boolean checkManualSyncUp = false;
+        if(CRON_FLAG || manualSyncUp){
             List<PhotovoltaicCell> weatherInfoDetails =  product.getWeatherInfo();
             if(weatherInfoDetails!=null) {
                 for (PhotovoltaicCell photoCell : product.getWeatherInfo()) {
@@ -673,24 +703,26 @@ public class UserService {
                     String yesterdayFormatted = yesterday.format(formatter);
 
                     if (photoCell.getWeatherDate().equals(yesterdayFormatted)) {
-                        manualSyncUp = true;
+                        checkManualSyncUp = true;
                         break;
                     }
                 }
             }
-            if(!manualSyncUp) {
-                LocalDate today = LocalDate.now();
+            if(!checkManualSyncUp) {
+                if(manualSyncUp || CRON_FLAG) {
+                    LocalDate today = LocalDate.now();
 
-                // Get yesterday's date
-                LocalDate yesterday = today.minusDays(1);
+                    // Get yesterday's date
+                    LocalDate yesterday = today.minusDays(1);
 
-                // Get the day before yesterday's date
+                    // Get the day before yesterday's date
 
-                from = yesterday.format(formatter);
-                to = today.format(formatter);
+                    from = yesterday.format(formatter);
+                    to = today.format(formatter);
+                }
             }
             else{
-                ResponseEntity<String> response = ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Manual SyncUp already performed");
+                ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("Manual SyncUp already performed");
                 parameters.put("response",response);
                 return parameters;
             }

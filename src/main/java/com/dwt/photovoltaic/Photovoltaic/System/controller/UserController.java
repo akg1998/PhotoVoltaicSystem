@@ -228,7 +228,21 @@ public class UserController {
     @CrossOrigin
     public ResponseEntity<?> generateReport(@RequestBody Map<String, Object> projectDetails, Principal principal){
         try {
-            ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName());
+            ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName(), false);
+            return new ResponseEntity<>(result, result.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(value="/manualSyncUp")
+    @CrossOrigin
+    public ResponseEntity<?> manualSyncUp(@RequestBody Map<String, Object> projectDetails,Principal principal){
+        try {
+            ResponseEntity<?> result = userService.generateReport(projectDetails,principal.getName(), true);
             return new ResponseEntity<>(result, result.getStatusCode());
         }
         catch(Exception e){
