@@ -6,6 +6,7 @@ import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
@@ -944,6 +945,7 @@ public class UserService {
             generateExcelFileReport(projectDetails.getProducts());
         }
         try{
+            ZipSecureFile.setMinInflateRatio(-1);
             // Load the workbook
             Workbook workbook = new XSSFWorkbook(file);
 
