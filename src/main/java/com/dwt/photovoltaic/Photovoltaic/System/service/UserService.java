@@ -4,6 +4,7 @@ import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
@@ -16,9 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -905,7 +904,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateGraphData(Project projectDetails, String username) {
+    public ResponseEntity<?> generateGraphData(Project projectDetails, String username) throws FileNotFoundException {
         User userObj = userRepo.findByUsername(username);
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
             // Assuming you have a data source containing weatherDate and electricityProduced values
@@ -932,10 +931,14 @@ public class UserService {
         }
     }
 
-    public List<DataEntry> getDataSource(Project projectDetails) {
+    public List<DataEntry> getDataSource(Project projectDetails) throws FileNotFoundException {
         List<DataEntry> dataSource = new ArrayList<>();
-        // Remove hard-coded value from here
-        try (FileInputStream file = new FileInputStream(projectDetails.getProducts().get(0).getProductName()+".xlsx")) {
+        String fileName = projectDetails.getProducts().get(0).getProductName() + ".xlsx";
+        File file = new File(fileName);
+        if(!file.exists()){
+            generateExcelFileReport(projectDetails.getProducts());
+        }
+        try{
             // Load the workbook
             Workbook workbook = new XSSFWorkbook(file);
 
@@ -966,6 +969,8 @@ public class UserService {
             workbook.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InvalidFormatException e) {
+            throw new RuntimeException(e);
         }
 
         return dataSource;
