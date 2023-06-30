@@ -901,11 +901,11 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateGraphData(String username) {
+    public ResponseEntity<?> generateGraphData(Project projectDetails, String username) {
         User userObj = userRepo.findByUsername(username);
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
             // Assuming you have a data source containing weatherDate and electricityProduced values
-            List<DataEntry> dataSource = getDataSource();
+            List<DataEntry> dataSource = getDataSource(projectDetails);
 
             // Create arrays to store weatherDate and electricityProduced values
             String[] weatherDates = new String[dataSource.size()];
@@ -928,10 +928,10 @@ public class UserService {
         }
     }
 
-    public List<DataEntry> getDataSource() {
+    public List<DataEntry> getDataSource(Project projectDetails) {
         List<DataEntry> dataSource = new ArrayList<>();
         // Remove hard-coded value from here
-        try (FileInputStream file = new FileInputStream("finalTestProduct1.xlsx")) {
+        try (FileInputStream file = new FileInputStream(projectDetails.getProducts().get(0).getProductName()+".xlsx")) {
             // Load the workbook
             Workbook workbook = new XSSFWorkbook(file);
 

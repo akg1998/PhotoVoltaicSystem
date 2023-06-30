@@ -238,11 +238,11 @@ public class UserController {
         }
     }
 
-    @GetMapping(value="/generateGraph")
+    @PostMapping(value="/generateGraph")
     @CrossOrigin
-    public ResponseEntity<?> generateGraph(Principal principal){
+    public ResponseEntity<?> generateGraph(@RequestBody Project projectObj, Principal principal){
         try {
-            ResponseEntity<?> graphData = userService.generateGraphData(principal.getName());
+            ResponseEntity<?> graphData = userService.generateGraphData(projectObj, principal.getName());
             return new ResponseEntity<>(graphData.getBody(), graphData.getStatusCode());
         }
         catch(Exception e){
