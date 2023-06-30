@@ -451,6 +451,8 @@ public class UserService {
                     .filter(p -> p.getProjectName().equals(projectDetails.getProjectName()))
                     .findFirst()
                     .orElse(null);
+            // This is required to pass updated product after calculation for generateGraph function
+            List<Product> updatedProducts = new ArrayList<>();
 
             // It means user clicked on any one of the product
             if (!projectDetails.getProducts().isEmpty() && !projectDetails.getStatus().equalsIgnoreCase("READ-ONLY")) {
@@ -485,10 +487,12 @@ public class UserService {
                             userRepo.save(userObj);
                         }
                     }
-                    generateExcelFileReport(projectDetails.getProducts());
-                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj, projectDetails.getProducts());
+                    Product existingProduct = (Product) results.get("existingProduct");
+                    updatedProducts.add(existingProduct);
+                    generateExcelFileReport(updatedProducts);
+                    ResponseEntity<?> responseStatusEmail = sendEmailWithAttachment(userObj, updatedProducts);
                     if (responseStatusEmail.getStatusCode() == HttpStatus.OK) {
-                        productObj.setStatus("READ-ONLY");
+                        existingProduct.setStatus("READ-ONLY");
                         userRepo.save(userObj);
                     }
                     if (results.size() > 0) {
@@ -947,7 +951,7 @@ public class UserService {
                 Row row = rowIterator.next();
                 // Assuming weatherDate is in the first column (index 0) and electricityProduced is in the second column (index 1)
                 Cell weatherDateCell = row.getCell(0);
-                Cell electricityProducedCell = row.getCell(1);
+                Cell electricityProducedCell = row.getCell(9);
 
                 // Extract the values from the cells
                 String weatherDate = weatherDateCell.getStringCellValue();
