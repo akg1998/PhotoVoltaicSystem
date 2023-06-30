@@ -3,6 +3,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.service;
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.CompanyRepository;
 import com.dwt.photovoltaic.Photovoltaic.System.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -434,13 +435,17 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username) {
+    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username) throws JsonProcessingException {
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
         int numberOfdays = 0;
         // Process Object projectDetails
         ObjectMapper objectMapper = new ObjectMapper();
-        Project projectDetails = objectMapper.convertValue(projectObj.get("projects"), Project.class) ;
+        String projectsJson = objectMapper.writeValueAsString(projectObj.get("projects"));
+
+        // Deserialize the JSON string to a Project object
+        Project projectDetails = objectMapper.readValue(projectsJson, Project.class);
+
         Map<String, Object> reportRange = (Map<String, Object>) projectObj.get("reportRange");
         List<String> fromToDates = objectMapper.convertValue(reportRange.get("dates"), List.class);
 
