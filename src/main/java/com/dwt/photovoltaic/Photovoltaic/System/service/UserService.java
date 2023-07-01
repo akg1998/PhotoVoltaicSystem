@@ -150,7 +150,7 @@ public class UserService {
             List<Project> listOfProjects = user.getProjects();
             if (user.getSubscription().equalsIgnoreCase("free") && listOfProjects.size() == 1) {
                 Project singleProject = listOfProjects.get(0);
-                if(singleProject.getProducts()!=null) {
+                if(singleProject.getProducts()!=null && singleProject.getStatus().equalsIgnoreCase("active")) {
                     if (singleProject.getProducts().size() < 3) {
                         ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
                         return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
@@ -160,9 +160,14 @@ public class UserService {
                         return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                     }
                 }
-                else{
+                else if(singleProject.getStatus().equalsIgnoreCase("active")){
                     ResponseEntity<?> saveProducts = saveProductMethod(user, projectObj);
                     return new ResponseEntity<>(saveProducts, saveProducts.getStatusCode());
+                }
+                else{
+                    ResponseMessage responseMessage = new ResponseMessage();
+                    responseMessage.setMessage("Project is not active, please try to create new project");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 }
             }
             else if(user.getSubscription().equalsIgnoreCase("unlimited")){
@@ -722,7 +727,9 @@ public class UserService {
                 }
             }
             else{
-                ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("Manual SyncUp already performed");
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Manual Sync up already performed!");
+                ResponseEntity<?> response = new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
                 parameters.put("response",response);
                 return parameters;
             }
