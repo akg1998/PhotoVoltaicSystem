@@ -115,7 +115,51 @@ public class CompanyService {
         }
         else {
             ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage("You are not valid user to perform this action!");
+            responseMessage.setMessage("You are not valid company user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> updateCompany(Company companyDetails, String username) {
+        Company companyObj = companyRepo.findByUsername(username);
+        if(companyObj!=null){
+            if(companyObj.getUsername().equals(companyDetails.getUsername())) {
+                companyObj.setCompanyEmailId(companyDetails.getCompanyEmailId());
+                companyObj.setContactNo(companyDetails.getContactNo());
+                companyObj = companyRepo.save(companyObj);
+                return new ResponseEntity<>(companyObj, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Username is not valid to perform update");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("You are not valid company user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> deleteCompany(Company companyDetails, String username) {
+        Company companyObj = companyRepo.findByUsername(username);
+        if(companyObj!=null){
+            if(companyObj.getUsername().equals(companyDetails.getUsername())) {
+                companyRepo.delete(companyObj);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Product deleted successfully");
+                return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Username is not valid to perform update");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+        }
+        else{
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("Company user is not available it might be deleted");
             return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }

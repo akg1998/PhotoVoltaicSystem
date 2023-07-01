@@ -31,6 +31,34 @@ public class CompanyController {
         }
     }
 
+    @PostMapping(value="/updateCompany")
+    @CrossOrigin
+    public ResponseEntity<?> updateCompany(@RequestBody Company companyDetails, Principal principal){
+        try {
+            ResponseEntity<?> company = companyService.updateCompany(companyDetails,principal.getName());
+            return new ResponseEntity<>(company, company.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(value="/deleteCompany")
+    @CrossOrigin
+    public ResponseEntity<?> deleteCompany(@RequestBody Company companyDetails, Principal principal){
+        try {
+            ResponseEntity<?> deletedCompany = companyService.deleteCompany(companyDetails,principal.getName());
+            return new ResponseEntity<>(deletedCompany, deletedCompany.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
     // Save project and product in single json
     @PostMapping(value="/saveCompanyProduct")
     @CrossOrigin
