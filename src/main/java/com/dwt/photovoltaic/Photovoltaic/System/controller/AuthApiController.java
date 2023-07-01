@@ -99,7 +99,7 @@ public class AuthApiController {
 
             return ResponseEntity.ok().body(response);
 
-        } catch (BadCredentialsException ex) {
+        } catch (Exception ex) {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage("Username or Password is incorrect");
             return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
@@ -121,10 +121,10 @@ public class AuthApiController {
 
             return ResponseEntity.ok().body(response);
 
-        } catch (BadCredentialsException ex) {
+        } catch (Exception ex) {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.setMessage("Username or Password is incorrect");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
         }
     }
 }
