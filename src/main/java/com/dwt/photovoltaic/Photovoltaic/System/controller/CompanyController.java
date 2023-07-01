@@ -46,4 +46,18 @@ public class CompanyController {
         }
     }
 
+    @PostMapping(value="/updateCompanyProduct")
+    @CrossOrigin
+    public ResponseEntity<?> updateCompanyProduct(@RequestBody Product productDetails, Principal principal){
+        try{
+            ResponseEntity<?> updatedProduct = companyService.updateProductDetails(principal.getName(), productDetails);
+            return new ResponseEntity<>(updatedProduct, updatedProduct.getStatusCode());
+        }
+        catch(Exception e){
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
 }

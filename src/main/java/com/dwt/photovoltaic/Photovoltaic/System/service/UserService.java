@@ -905,7 +905,7 @@ public class UserService {
                 return new ResponseEntity<>(project, HttpStatus.OK);
             } else {
                 ResponseMessage responseMessage = new ResponseMessage();
-                responseMessage.setMessage("Project name is empty");
+                responseMessage.setMessage("Project name is empty or Project might not present");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         } else {
@@ -932,7 +932,7 @@ public class UserService {
                 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
             } else {
                 ResponseMessage responseMessage = new ResponseMessage();
-                responseMessage.setMessage("Project name is empty");
+                responseMessage.setMessage("Project name is empty or Project might not present");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
         } else {
