@@ -31,7 +31,7 @@ public class CompanyController {
         }
     }
 
-    @PostMapping(value="/updateCompany")
+    @PatchMapping(value="/updateCompany")
     @CrossOrigin
     public ResponseEntity<?> updateCompany(@RequestBody Company companyDetails, Principal principal){
         try {
@@ -74,7 +74,7 @@ public class CompanyController {
         }
     }
 
-    @PostMapping(value="/updateCompanyProduct")
+    @PatchMapping(value="/updateCompanyProduct")
     @CrossOrigin
     public ResponseEntity<?> updateCompanyProduct(@RequestBody Product productDetails, Principal principal){
         try{
