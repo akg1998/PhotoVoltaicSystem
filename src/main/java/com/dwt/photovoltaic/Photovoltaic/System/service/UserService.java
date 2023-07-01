@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -609,7 +610,7 @@ public class UserService {
     }
 
     // CRON JOB
-    //@Scheduled(fixedRate = 10000)
+    @Scheduled(cron = "0 0 0 * * ?")        // Syntax to run every night
     public void runForDailyElectricityProduced() {
         List<User> activeUsers = userRepo.showUsersbyStatus("ACTIVE");
         HashMap<String, Object> results = new HashMap<>();
@@ -669,7 +670,7 @@ public class UserService {
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
         String apiUrl = "https://api.weatherbit.io/v2.0/history/daily?";
-        String apiKey = "f9d1df33a4be4c0e96365efac877ea22";
+        String apiKey = "06a0af5f61ec416fbac8aeaeec4d7998";
 
         double panelArea = new BigDecimal(String.valueOf(product.getArea())).doubleValue();
         double systemLoss = new BigDecimal(String.valueOf(product.getSystemLoss())).doubleValue();

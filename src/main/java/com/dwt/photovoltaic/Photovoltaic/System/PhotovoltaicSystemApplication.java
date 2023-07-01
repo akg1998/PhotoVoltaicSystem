@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-//@EnableScheduling
+@EnableScheduling
 @SecurityScheme(name="jwtAuth", scheme = "bearer", type= SecuritySchemeType.HTTP, bearerFormat = "JWT")
 public class PhotovoltaicSystemApplication {
 	public static void main(String[] args) {
