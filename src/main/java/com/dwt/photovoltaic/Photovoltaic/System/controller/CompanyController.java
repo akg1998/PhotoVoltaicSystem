@@ -60,4 +60,17 @@ public class CompanyController {
         }
     }
 
+    @DeleteMapping(value="/deleteCompanyProduct")
+    @CrossOrigin
+    public ResponseEntity<?> deleteCompanyProduct(@RequestBody Product productDetails, Principal principal) {
+        try {
+            ResponseEntity<?> deletedProduct = companyService.deleteProduct(principal.getName(), productDetails);
+            return new ResponseEntity<>(deletedProduct, deletedProduct.getStatusCode());
+        } catch (Exception e) {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage(String.valueOf(e));
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+
 }

@@ -94,4 +94,29 @@ public class CompanyService {
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
         }
     }
+
+    public ResponseEntity<?> deleteProduct(String username, Product productDetails) {
+        Company companyObj = companyRepo.findByUsername(username);
+        if(companyObj!=null) {
+            List<Product> listOfProducts = companyObj.getProducts();
+            if (listOfProducts.size()>0) {
+                listOfProducts.removeIf(p -> p.getProductName().equals(productDetails.getProductName()));
+                companyRepo.save(companyObj);
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Product deleted successfully");
+                return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+            }
+            else{
+                ResponseMessage responseMessage = new ResponseMessage();
+                responseMessage.setMessage("Product is not present or it might be deleted");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+
+        }
+        else {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("You are not valid user to perform this action!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+    }
 }
