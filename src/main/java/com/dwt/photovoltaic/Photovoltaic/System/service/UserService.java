@@ -633,7 +633,7 @@ public class UserService {
                                     results = calculateElectricityProduced(activeProduct, activeProduct, 0, activeProduct.getWeatherInfo(), true, null,null, false);
                                     ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                     if (response.getStatusCode() == HttpStatus.OK) {
-                                        //userRepo.save(activeUser);
+                                        userRepo.save(activeUser);
                                         System.out.println("Cron JOB ran successfully");
                                     }
                                     else if(response.getStatusCode()==HttpStatus.ALREADY_REPORTED){
@@ -642,7 +642,7 @@ public class UserService {
                                     }
                                     if (activeProduct.getWeatherInfo().size() == 30) {
                                         activeProduct.setStatus("READ-ONLY");
-                                        //userRepo.save(activeUser);
+                                        userRepo.save(activeUser);
                                     }
                                 }
                                 else{
@@ -654,7 +654,7 @@ public class UserService {
                                 results = calculateElectricityProduced(activeProduct, activeProduct, 0, null,true,null,null, false);
                                 ResponseEntity<String> response = (ResponseEntity<String>) results.get("response");
                                 if (response.getStatusCode() == HttpStatus.OK) {
-                                    //userRepo.save(activeUser);
+                                    userRepo.save(activeUser);
                                     System.out.println("Cron JOB ran successfully");
                                 }
                             }
