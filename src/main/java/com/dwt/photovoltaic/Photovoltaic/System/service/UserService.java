@@ -538,7 +538,7 @@ public class UserService {
             }
             // It means user clicked on Project, and it should generate report for all products
             else {
-                if(project.getProducts()!=null && !project.getStatus().equalsIgnoreCase("READ-ONLY")){
+                if(!project.getProducts().isEmpty() && !project.getStatus().equalsIgnoreCase("READ-ONLY")){
                     List<Product> products = project.getProducts();
                     for(Product product: products){
                         if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {

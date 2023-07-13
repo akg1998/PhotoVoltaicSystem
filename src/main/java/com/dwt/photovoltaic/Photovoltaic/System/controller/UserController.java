@@ -2,6 +2,7 @@ package com.dwt.photovoltaic.Photovoltaic.System.controller;
 
 import com.dwt.photovoltaic.Photovoltaic.System.model.*;
 import com.dwt.photovoltaic.Photovoltaic.System.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -228,16 +230,9 @@ public class UserController {
 
     @PostMapping(value="/generateReport")
     @CrossOrigin
-    public ResponseEntity<?> generateReport(@RequestBody Map<String, Object> projectDetails, Principal principal){
-        try {
+    public ResponseEntity<?> generateReport(@RequestBody Map<String, Object> projectDetails, Principal principal) throws ParseException, JsonProcessingException {
             ResponseEntity<?> result = userService.generateReport(projectDetails, principal.getName(), false);
             return new ResponseEntity<>(result, result.getStatusCode());
-        }
-        catch(Exception e){
-            ResponseMessage responseMessage = new ResponseMessage();
-            responseMessage.setMessage(String.valueOf(e));
-            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-        }
     }
 
     @PostMapping(value="/manualSyncUp")
