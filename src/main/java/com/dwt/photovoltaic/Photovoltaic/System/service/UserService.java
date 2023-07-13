@@ -462,17 +462,20 @@ public class UserService {
 
         // Retrieve the string array from the map
         List<String> datesArray = (List<String>) projectObj.get("date");
-
-        // Convert date strings to Date objects and apply European time zone
         List<Date> convertedDates = new ArrayList<>();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
 
-        for (String dateString : datesArray) {
-            Date date = dateFormat.parse(dateString);
-            convertedDates.add(date);
+        if(datesArray!=null) {
+            // Convert date strings to Date objects and apply European time zone
+
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+
+            for (String dateString : datesArray) {
+                Date date = dateFormat.parse(dateString);
+                convertedDates.add(date);
+            }
+
         }
-
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
 
             Project project = userObj.getProjects().stream()
@@ -492,6 +495,7 @@ public class UserService {
                             .orElse(null);
                     List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
                         // Custom Report Date Range implementation
+                    if(datesArray !=null) {
                         if (datesArray.size() == 2) {
                             if (productObj.getWeatherInfo() != null) {
                                 productObj.setWeatherInfo(new ArrayList<>());
@@ -500,7 +504,8 @@ public class UserService {
                             Date toDate = convertedDates.get(1);
                             results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate, false);
                             userRepo.save(userObj);
-                    }else {
+                        }
+                    } else {
                         // If someone clicks Generate Report button after (for example) 6-7 calculations.
                         if (productObj.getWeatherInfo() != null) {
                             numberOfdays = productObj.getWeatherInfo().size();
@@ -538,7 +543,7 @@ public class UserService {
             }
             // It means user clicked on Project, and it should generate report for all products
             else {
-                if(!project.getProducts().isEmpty() && !project.getStatus().equalsIgnoreCase("READ-ONLY")){
+                if(project.getProducts()!=null && !project.getStatus().equalsIgnoreCase("READ-ONLY")){
                     List<Product> products = project.getProducts();
                     for(Product product: products){
                         if(!product.getStatus().equalsIgnoreCase("READ-ONLY")) {
