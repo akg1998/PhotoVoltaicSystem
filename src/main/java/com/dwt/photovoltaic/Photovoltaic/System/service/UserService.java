@@ -20,8 +20,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -442,7 +448,8 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username, boolean manualSyncUp) throws JsonProcessingException {
+    public ResponseEntity<?> generateReport(Map<String, Object> projectObj, String username, boolean manualSyncUp) throws JsonProcessingException, ParseException {
+
         User userObj = userRepo.findByUsername(username);
         HashMap<String, Object> results = new HashMap<>();
         int numberOfdays = 0;
@@ -455,6 +462,16 @@ public class UserService {
 
         // Retrieve the string array from the map
         List<String> datesArray = (List<String>) projectObj.get("date");
+
+        // Convert date strings to Date objects and apply European time zone
+        List<Date> convertedDates = new ArrayList<>();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+
+        for (String dateString : datesArray) {
+            Date date = dateFormat.parse(dateString);
+            convertedDates.add(date);
+        }
 
         if (userObj != null && userObj.getStatus().equals("ACTIVE")) {
 
@@ -474,18 +491,15 @@ public class UserService {
                             .findFirst()
                             .orElse(null);
                     List<PhotovoltaicCell> weatherInfo = productObj.getWeatherInfo();
-
-                    if(datesArray!=null) {
                         // Custom Report Date Range implementation
                         if (datesArray.size() == 2) {
                             if (productObj.getWeatherInfo() != null) {
                                 productObj.setWeatherInfo(new ArrayList<>());
                             }
-                            String fromDate = datesArray.get(0);
-                            String toDate = datesArray.get(1);
+                            Date fromDate = convertedDates.get(0);
+                            Date toDate = convertedDates.get(1);
                             results = calculateElectricityProduced(product, productObj, 0, null, false, fromDate, toDate, false);
                             userRepo.save(userObj);
-                        }
                     }else {
                         // If someone clicks Generate Report button after (for example) 6-7 calculations.
                         if (productObj.getWeatherInfo() != null) {
@@ -665,12 +679,12 @@ public class UserService {
         }
     }
 
-    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG, String fromDate, String toDate, boolean manualSyncUp) {
+    public HashMap<String,Object> calculateElectricityProduced(Product product, Product existingProduct, int numberOfDaysLapsed, List<PhotovoltaicCell> weatherInfo, boolean CRON_FLAG, Date fromDate, Date toDate, boolean manualSyncUp) {
         HashMap<String, Object> parameters = new HashMap<>();
         List<PhotovoltaicCell> photovoltaicCells = new ArrayList<>();
 
         String apiUrl = "https://api.weatherbit.io/v2.0/history/daily?";
-        String apiKey = "06a0af5f61ec416fbac8aeaeec4d7998";
+        String apiKey = "723c94998d0d40f1afa44885e6a3f1c2";
 
         double panelArea = new BigDecimal(String.valueOf(product.getArea())).doubleValue();
         double systemLoss = new BigDecimal(String.valueOf(product.getSystemLoss())).doubleValue();
@@ -678,13 +692,18 @@ public class UserService {
         BigDecimal latitude = product.getLatitude();
         BigDecimal longitude = product.getLongitude();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         String to = "";
         String from = "";
         if(fromDate!=null && toDate!=null){
             // Parse the input strings to LocalDateTime objects
-            LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, inputFormatter);
-            LocalDateTime toDateTime = LocalDateTime.parse(toDate, inputFormatter);
+            // Taking next date for API to fetch data for given range
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(toDate);
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+            Date nextDate = calendar.getTime();
+
+            LocalDateTime fromDateTime = LocalDateTime.ofInstant(fromDate.toInstant(), ZoneId.systemDefault());
+            LocalDateTime toDateTime = LocalDateTime.ofInstant(nextDate.toInstant(), ZoneId.systemDefault());
             to = toDateTime.format(formatter);
             from = fromDateTime.format(formatter);
         }
